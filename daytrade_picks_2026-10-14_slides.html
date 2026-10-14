@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<!--
+  通用横向滑动简报模板（参照 SA_brief_2026-10-10_slides.html，用户已确认喜欢此交互）。
+  给 cron worker 的使用说明：
+  1. 把 id="track" 的 div 里的 section.slide 全部替换为本期内容，每节一屏。
+     （注意：注释里不要出现 <div id="track"> 的字面写法，否则按字面正则替换时会从注释处误匹配、吃掉 head。）
+  2. 第一屏必须是封面（class="slide cover"）：kicker 写任务名、h1 写日期+期名、lead 写一句话主线。
+  3. 语言：优质股日报用繁体中文；InvesTalk 总结、周末复盘用简体中文。按任务要求来。
+  4. 涨跌颜色：涨用 class="up"（绿 #4ade80），跌用 class="dn"（红 #f87171），轮动中（ROTATING）用 class="rot" / 标签 class="tag rot"（黄 #facc15），不要用紫色。
+     板块轮动任务的 ROTATE 方向标注：相对上一次 STATE，bearish→rotating 标"rotate up ↑"，bullish→rotating 标"rotate down ↓"（黄色）。
+  5. 下面的 CSS/JS 不要改（滑动、圆点、箭头、计数器、触屏/鼠标拖拽已调好）。
+  6. 每屏内容控制在手机一屏能滑完的长度；超长内容拆成两屏。
+  7. 文末固定声明按各任务要求放（"本简报仅为信息整理，不构成投资建议。"等）。
+  可用的内容块 pattern（复制使用）：
+    - 标题屏：<div class="kicker">序号 · 分节名</div><h2 class="stitle">大标题</h2><p class="lead">导语</p>
+    - 数字磁贴：<div class="grid"><div class="tile"><div class="v up">数值</div><div class="l">标签</div></div>…</div>
+    - 卡片：<div class="card"><h4>小标题</h4><p>正文</p></div>
+    - 紧凑列表：<ul class="tight"><li>…</li></ul>
+    - 迷你表格：<table class="mini"><tr><td>左</td><td style="text-align:right"><span class="tag up">标签</span></td></tr></table>
+    - 多空对读：<div class="vs"><div class="bull"><h5>▲ 看多</h5>…</div><div class="bear"><h5>▼ 看空</h5>…</div></div>
+    - 标签：<span class="tag up|dn|mid|rot">文字</span>（rot=黄色，用于 ROTATING）
+    - 页脚：<div class="foot">…</div>
+-->
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>日内交易精选 2026-10-14</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; overflow:hidden; }
+  body { font-family:-apple-system,'PingFang SC','PingFang TC','Microsoft YaHei','Microsoft JhengHei','Segoe UI',Arial,sans-serif; background:#0b1220; color:#e2e8f0; }
+  #deck { position:fixed; inset:0; overflow:hidden; }
+  #track { display:flex; height:100%; transition:transform .38s cubic-bezier(.32,.72,.35,1); }
+  .slide { flex:0 0 100%; height:100%; overflow-y:auto; padding:calc(56px + env(safe-area-inset-top)) 22px calc(84px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; justify-content:flex-start; }
+  .inner { max-width:680px; width:100%; margin:0 auto; }
+  .kicker { font-size:14px; letter-spacing:2px; color:#d4a94e; font-weight:700; margin-bottom:10px; }
+  h2.stitle { font-size:30px; font-weight:800; color:#fff; margin-bottom:14px; line-height:1.35; }
+  .lead { font-size:17px; line-height:1.75; color:#cbd5e1; }
+  .lead b { color:#fff; }
+  .up { color:#4ade80; font-weight:700; } .dn { color:#f87171; font-weight:700; }
+  .rot { color:#facc15; font-weight:700; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:6px; }
+  .tile { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:12px 14px; }
+  .tile .v { font-size:23px; font-weight:800; }
+  .tile .l { font-size:13px; color:#94a3b8; margin-top:3px; }
+  .card { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:14px; margin-bottom:12px; font-size:16px; line-height:1.7; }
+  .card h4 { font-size:17px; margin-bottom:8px; }
+  .vs { display:grid; grid-template-columns:1fr; gap:10px; }
+  .bear { background:#2a1420; border:1px solid #7f2d3a; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65; }
+  .bull { background:#0f2a1c; border:1px solid #2f7a4d; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65; }
+  .bear h5 { color:#f87171; font-size:15px; margin-bottom:6px; }
+  .bull h5 { color:#4ade80; font-size:15px; margin-bottom:6px; }
+  ul.tight { padding-left:18px; font-size:15.5px; line-height:1.8; color:#cbd5e1; }
+  ul.tight li { margin-bottom:4px; }
+  .tag { display:inline-block; border-radius:20px; padding:1px 9px; font-size:12.5px; font-weight:700; }
+  .tag.up { background:rgba(74,222,128,.15); color:#4ade80; } .tag.dn { background:rgba(248,113,113,.15); color:#f87171; }
+  .tag.rot { background:rgba(250,204,21,.15); color:#facc15; }
+  .tag.mid { background:rgba(148,163,184,.15); color:#94a3b8; }
+  table.mini { width:100%; border-collapse:collapse; font-size:14px; }
+  table.mini td { padding:8px 4px; border-bottom:1px solid #1e2a44; vertical-align:top; line-height:1.55; }
+  .foot { font-size:13px; color:#64748b; text-align:center; margin-top:18px; }
+  /* cover */
+  .cover { justify-content:flex-start; }
+  .cover .inner { padding-top:7vh; }
+  .cover h1 { font-size:36px; font-weight:800; color:#fff; line-height:1.4; margin:10px 0 16px; }
+  .cover .date { font-size:13px; color:#94a3b8; }
+  /* nav */
+  #dots { position:fixed; bottom:calc(22px + env(safe-area-inset-bottom)); left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:10; }
+  #dots span { width:8px; height:8px; border-radius:50%; background:#334155; transition:all .25s; cursor:pointer; }
+  #dots span.on { background:#d4a94e; width:24px; border-radius:4px; }
+  .arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:10; width:40px; height:40px; border-radius:50%;
+           background:rgba(212,169,78,.12); border:1px solid rgba(212,169,78,.35); color:#d4a94e; font-size:18px;
+           display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; }
+  #prev { left:calc(8px + env(safe-area-inset-left)); } #next { right:calc(8px + env(safe-area-inset-right)); }
+  .arrow:active { background:rgba(212,169,78,.3); }
+  #counter { position:fixed; top:calc(16px + env(safe-area-inset-top)); right:calc(18px + env(safe-area-inset-right)); font-size:12px; color:#64748b; z-index:10; }
+  #fsbtn { position:fixed; right:calc(16px + env(safe-area-inset-right)); bottom:calc(60px + env(safe-area-inset-bottom)); z-index:10; width:40px; height:40px; border-radius:50%;
+           background:rgba(212,169,78,.15); border:1px solid rgba(212,169,78,.45); color:#d4a94e; font-size:18px;
+           display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; }
+  #fsbtn:active { background:rgba(212,169,78,.35); }
+  #fshint { position:fixed; left:50%; bottom:calc(110px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:30;
+           background:rgba(15,23,42,.95); border:1px solid #334155; color:#e2e8f0; font-size:14px; line-height:1.6;
+           padding:10px 16px; border-radius:10px; display:none; max-width:88vw; text-align:center; }
+  @media (max-width:480px){ h2.stitle{font-size:26px;} .cover h1{font-size:31px;} .arrow{display:none;} }
+  /* 平板/桌面：箭头可见时正文左右留出 64px，避免文字跑到箭头下面；内容列随屏宽放大，填满 iPad 全屏 */
+  @media (min-width:481px){ .slide{padding:calc(56px + env(safe-area-inset-top)) 64px calc(84px + env(safe-area-inset-bottom));} }
+  @media (min-width:768px){ .inner{max-width:860px;} h2.stitle{font-size:34px;} .cover h1{font-size:44px;} .lead{font-size:19px;} ul.tight{font-size:17px;} .card{font-size:17px;} .tile .v{font-size:26px;} table.mini{font-size:15px;} }
+  @media (min-width:1100px){ .inner{max-width:1000px;} h2.stitle{font-size:36px;} .cover h1{font-size:48px;} .lead{font-size:20px;} }
+  /* 打印 / 转 PDF（WhatsApp 里 PDF 查看器可真全屏）：每屏一页，长屏自然跨页，不断内容 */
+  @page { size: A4; margin: 0; }
+  @media print {
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    html, body { height:auto; overflow:visible; background:#0b1220; }
+    #deck { position:static; overflow:visible; height:auto; }
+    #track { display:block; height:auto; transform:none !important; }
+    .slide { flex:none; width:100%; height:auto; min-height:0; overflow:visible; padding:20px 22px; page-break-after:always; }
+    .slide:last-child { page-break-after:auto; }
+    #dots, .arrow, #counter, #fsbtn, #fshint { display:none !important; }
+    .cover .inner { padding-top:0; }
+  }
+</style>
+</head>
+<body>
+<div id="deck"><div id="track">
+<section class="slide cover"><div class="inner">
+<div class="kicker">日内交易精选 · SLIDES</div>
+<h1>2026-10-14<br><span style="color:#d4a94e;">日内交易精选</span></h1>
+<p class="lead">一句话：三大看多板块（Power / GPU / Crypto 全部 <span class="rot">rotate up ↑</span>），首选 <b>BE</b>，其余备选；今日 <b>8:30am CPI</b> 定调，不抢跑。</p>
+<div class="date" style="margin-top:14px;">数据口径：板块轮动 + GEX（10-13 收盘）+ 早盘全览 + InvesTalk · 左右滑动浏览 →</div>
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">01 · 3 大板块</div>
+<h2 class="stitle">方向：全部看多 ▲</h2>
+<div class="vs"><div class="bull"><h5>▲ 看多 · Power — BULLISH 75.2（rotate up ↑）</h5>
+<p>11 板块最高分；成分股 100% 上涨，买盘占比 86.4%，VWAP 100。资金撤向现金流确定方向的代表。</p></div>
+<div class="bull"><h5>▲ 看多 · GPU — BULLISH 72.1（rotate up ↑）</h5>
+<p>广度 100，资金 78，VWAP 100；昨日板块 +0.14% 企稳，半导体抛售中率先转强。</p></div>
+<div class="bull"><h5>▲ 看多 · Crypto — BULLISH 60.3（rotate up ↑）</h5>
+<p>广度 98；三大看多中最弱，BTC 约 $83,800 横盘企稳。</p></div></div>
+<p class="lead" style="margin-top:10px;font-size:14px;">无 BEARISH 板块，今日无做空结构；CPU（GEX 否决）、AI 应用（衰竭降级）已排除。</p>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">02 · 股票 ①</div>
+<h2 class="stitle">BE — 做多 · 首选 ⭐</h2>
+<ul class="tight">
+<li><b>价格</b>：$263.45（10-13 +0.45%）· 20 日均成交额约 $4.55B</li>
+<li><b>GEX 参考位</b>：Call Wall $280 / Put Wall $240 / Zero Gamma $259.2 · ATM IV 79.3 · ±1σ EM ±5%</li>
+<li><b>位置</b>：站上 ZG $259.2（+1.6%）；5 日动量 -10.97% 回踩位；RSI 48；价格在 EMA50/200 上方、EMA20（$272.37）下方——趋势过滤部分通过</li>
+<li><b>入场参考结构</b>：开盘扫 ZG $259 附近后收回 → 做多候选（sweep-reclaim，等收回确认，不抢跑）</li>
+<li><b>止损锚 / invalidation</b>：sweep 低点之外；idea 死亡价 Put Wall $240 一带——触发当天不再做该股</li>
+<li><b>目标参考</b>：对面流动性池 Call Wall $280（空间约 +6.3%）</li>
+<li><b>催化剂</b>：Power 最强板块 + 能源/现金流轮动（XOP 20 日新高）+ 持仓股；未来 2 天无财报</li>
+<li><b>最大风险点</b>：CPI 高于预期 → 高利率压制估值；IV 79.3 偏高，日内波动大</li>
+</ul>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">03 · 股票 ②</div>
+<h2 class="stitle">AVGO — 做多 · 备选</h2>
+<ul class="tight">
+<li><b>价格</b>：$357.31（10-13 +0.73%）· 20 日均成交额约 $8.15B</li>
+<li><b>GEX 参考位</b>：Call Wall $400 / Put Wall $340 / Zero Gamma $356.94 · ATM IV 48.9 · ±1σ EM ±3.08%</li>
+<li><b>位置</b>：恰站 ZG $356.94 上方（+0.1%）；5 日动量 -4.92% 回踩位；RSI 48；价格在日线 EMA20/50/200 下方——趋势过滤未完全通过</li>
+<li><b>入场参考结构</b>：扫破 ZG $356.94 后收回 → 做多候选（等收回确认）</li>
+<li><b>止损锚 / invalidation</b>：sweep 低点之外；idea 死亡价 Put Wall $340 一带——触发当天不再做该股</li>
+<li><b>目标参考</b>：对面流动性池 Call Wall $400（空间约 +12%）</li>
+<li><b>催化剂</b>：半导体抛售中相对韧性（+0.73% vs Memory -2.36%）；DBS 会议：AVGO 称 AI 芯片需求至少再旺 2 年；Ives 称抛售“严重过度”</li>
+<li><b>最大风险点</b>：ASML 盘前财报定调半导体情绪 + CPI——半导体事件日，level 降权</li>
+</ul>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">04 · 股票 ③</div>
+<h2 class="stitle">HOOD — 做多 · 备选</h2>
+<ul class="tight">
+<li><b>价格</b>：$110.52（10-13 +1.19%）· 20 日均成交额约 $2.38B</li>
+<li><b>GEX 参考位</b>：Call Wall $120 / Put Wall $100 / Zero Gamma $102.73 · ATM IV 63.1 · ±1σ EM ±3.98%</li>
+<li><b>位置</b>：中段（距 Call +8.6%，距 Put +10.5%，ZG 上方 +7.6%）；5 日动量 -1.34%；EMA50/200 上方、EMA20 下方</li>
+<li><b>入场参考结构</b>：扫 Put Wall $100 / ZG $102.73 附近后收回 → 做多候选（等收回确认）</li>
+<li><b>止损锚 / invalidation</b>：sweep 低点之外——触发当天不再做该股</li>
+<li><b>目标参考</b>：对面流动性池 Call Wall $120（空间约 +8.6%）</li>
+<li><b>催化剂</b>：Crypto 板块 rotate up + BTC 约 $83,800 横盘企稳（板块级催化剂，非个股新闻）</li>
+<li><b>最大风险点</b>：个股催化剂偏弱，三只中质量最低；若 CPI 恶化先放弃</li>
+</ul>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">05 · 今日剧本</div>
+<h2 class="stitle">CPI 两种情境 + 纪律</h2>
+<div class="vs"><div class="bull"><h5>▲ 情境 A：CPI 符合 / 低于预期</h5>
+<p>利率压力缓解 → 三大看多板块跟进；BE 守住 ZG $259、AVGO 收回 ZG $357 是确认信号。</p></div>
+<div class="bear"><h5>▼ 情境 B：CPI 高于预期</h5>
+<p>10Y 在 5.2% 以上继续压制估值 → 分化变扩散，sweep 剧本失效即 sit out。ASML 盘前财报同步定调半导体情绪。</p></div></div>
+<ul class="tight" style="margin-top:10px;">
+<li><b>纪律</b>：3 只里只打最高质量的一笔（首选 BE），其余备选；触发 invalidation 当天不再做该股。</li>
+<li><b>不写精确到分的买卖指令</b>：以上均为参考结构与剧本，非入场/止损/目标价指令。</li>
+</ul>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">附录 · 数据来源与缺失说明</div>
+<h2 class="stitle">来源、排除项与事件风险</h2>
+<ul class="tight">
+<li><b>板块轮动</b>：本 run 第二部分，yfinance，10-13 收盘 + 亚盘全收市</li>
+<li><b>GEX</b>：GEX_latest.xlsx，10-13 收盘，新鲜非 STALE</li>
+<li><b>早盘全览</b>：morning_brief_2026-10-14_slides.html；<b>InvesTalk</b>：investalk_2026-10-14_slides.html</li>
+<li><b>验证</b>：本 run 第一部分，近两次验证合计 HIT 2/21，置信度降档</li>
+<li><b>排除</b>：NVDA（用户明确波动太小，不选）；META（AI 应用衰竭降级 + 昨日 +2.63% 追高 + 靠近前高）；AMD（距 Call Wall $620 仅 2.4%，顶墙）；MSTR（距 Call Wall 仅约 3.5%，墙体空间偏紧）；无 BEARISH 板块，故无做空候选</li>
+<li><b>事件风险</b>：今日 8:30am CPI（分水岭）+ ASML 盘前财报 + 明日 TSM 财报；BE / AVGO / HOOD 未来 2 天均无财报</li>
+</ul><div class="foot">本输出为信号监测与筛选，不构成投资建议。</div>
+
+</div></section>
+</div></div>
+
+<div id="fsbtn" title="全屏">⛶</div>
+<div id="fshint">WhatsApp 内无法全屏，请点分享 → 在 Safari 中打开</div>
+<div id="counter">1 / 3</div>
+<div class="arrow" id="prev">‹</div>
+<div class="arrow" id="next">›</div>
+<div id="dots"></div>
+
+<script>
+(function(){
+  var track = document.getElementById('track');
+  var slides = track.children.length;
+  var idx = 0, dots = document.getElementById('dots'), counter = document.getElementById('counter');
+  for (var i=0;i<slides;i++){ (function(n){ var s=document.createElement('span'); s.onclick=function(){go(n);}; dots.appendChild(s); })(i); }
+  function go(n){
+    idx = Math.max(0, Math.min(slides-1, n));
+    track.style.transform = 'translateX(-' + (idx*100) + '%)';
+    var ds = dots.children;
+    for (var i=0;i<ds.length;i++) ds[i].className = i===idx ? 'on' : '';
+    counter.textContent = (idx+1) + ' / ' + slides;
+  }
+  document.getElementById('prev').onclick = function(){ go(idx-1); };
+  document.getElementById('next').onclick = function(){ go(idx+1); };
+  document.addEventListener('keydown', function(e){
+    if (e.key==='ArrowRight'||e.key===' ') go(idx+1);
+    if (e.key==='ArrowLeft') go(idx-1);
+  });
+  var sx=0, dx=0, dragging=false;
+  var deck = document.getElementById('deck');
+  deck.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; dx=0; dragging=true; }, {passive:true});
+  deck.addEventListener('touchmove', function(e){ if(dragging) dx=e.touches[0].clientX-sx; }, {passive:true});
+  deck.addEventListener('touchend', function(e){
+    dragging=false;
+    if (Math.abs(dx)>60){ go(idx + (dx<0?1:-1)); }
+  });
+  var msx=0, mdx=0, mdown=false;
+  deck.addEventListener('mousedown', function(e){ mdown=true; msx=e.clientX; mdx=0; });
+  deck.addEventListener('mousemove', function(e){ if(mdown) mdx=e.clientX-msx; });
+  deck.addEventListener('mouseup', function(){ if(mdown&&Math.abs(mdx)>80) go(idx+(mdx<0?1:-1)); mdown=false; });
+  var fs = document.getElementById('fsbtn');
+  function showHint(){
+    var h = document.getElementById('fshint');
+    h.style.display = 'block';
+    clearTimeout(h._t);
+    h._t = setTimeout(function(){ h.style.display = 'none'; }, 3500);
+  }
+  fs.onclick = function(){
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        var p = (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        if (p && p.catch) p.catch(showHint);
+      } else {
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) { showHint(); return; }
+        var r = req.call(el);
+        if (r && r.catch) r.catch(showHint);
+      }
+    } catch(e) { showHint(); }
+  };
+  go(0);
+})();
+</script>
+</body>
+</html>

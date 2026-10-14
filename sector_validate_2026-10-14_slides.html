@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<!--
+  通用横向滑动简报模板（参照 SA_brief_2026-10-10_slides.html，用户已确认喜欢此交互）。
+  给 cron worker 的使用说明：
+  1. 把 id="track" 的 div 里的 section.slide 全部替换为本期内容，每节一屏。
+     （注意：注释里不要出现 <div id="track"> 的字面写法，否则按字面正则替换时会从注释处误匹配、吃掉 head。）
+  2. 第一屏必须是封面（class="slide cover"）：kicker 写任务名、h1 写日期+期名、lead 写一句话主线。
+  3. 语言：优质股日报用繁体中文；InvesTalk 总结、周末复盘用简体中文。按任务要求来。
+  4. 涨跌颜色：涨用 class="up"（绿 #4ade80），跌用 class="dn"（红 #f87171），轮动中（ROTATING）用 class="rot" / 标签 class="tag rot"（黄 #facc15），不要用紫色。
+     板块轮动任务的 ROTATE 方向标注：相对上一次 STATE，bearish→rotating 标"rotate up ↑"，bullish→rotating 标"rotate down ↓"（黄色）。
+  5. 下面的 CSS/JS 不要改（滑动、圆点、箭头、计数器、触屏/鼠标拖拽已调好）。
+  6. 每屏内容控制在手机一屏能滑完的长度；超长内容拆成两屏。
+  7. 文末固定声明按各任务要求放（"本简报仅为信息整理，不构成投资建议。"等）。
+  可用的内容块 pattern（复制使用）：
+    - 标题屏：<div class="kicker">序号 · 分节名</div><h2 class="stitle">大标题</h2><p class="lead">导语</p>
+    - 数字磁贴：<div class="grid"><div class="tile"><div class="v up">数值</div><div class="l">标签</div></div>…</div>
+    - 卡片：<div class="card"><h4>小标题</h4><p>正文</p></div>
+    - 紧凑列表：<ul class="tight"><li>…</li></ul>
+    - 迷你表格：<table class="mini"><tr><td>左</td><td style="text-align:right"><span class="tag up">标签</span></td></tr></table>
+    - 多空对读：<div class="vs"><div class="bull"><h5>▲ 看多</h5>…</div><div class="bear"><h5>▼ 看空</h5>…</div></div>
+    - 标签：<span class="tag up|dn|mid|rot">文字</span>（rot=黄色，用于 ROTATING）
+    - 页脚：<div class="foot">…</div>
+-->
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>板块轮动验证 2026-10-14</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; overflow:hidden; }
+  body { font-family:-apple-system,'PingFang SC','PingFang TC','Microsoft YaHei','Microsoft JhengHei','Segoe UI',Arial,sans-serif; background:#0b1220; color:#e2e8f0; }
+  #deck { position:fixed; inset:0; overflow:hidden; }
+  #track { display:flex; height:100%; transition:transform .38s cubic-bezier(.32,.72,.35,1); }
+  .slide { flex:0 0 100%; height:100%; overflow-y:auto; padding:calc(56px + env(safe-area-inset-top)) 22px calc(84px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; justify-content:flex-start; }
+  .inner { max-width:680px; width:100%; margin:0 auto; }
+  .kicker { font-size:14px; letter-spacing:2px; color:#d4a94e; font-weight:700; margin-bottom:10px; }
+  h2.stitle { font-size:30px; font-weight:800; color:#fff; margin-bottom:14px; line-height:1.35; }
+  .lead { font-size:17px; line-height:1.75; color:#cbd5e1; }
+  .lead b { color:#fff; }
+  .up { color:#4ade80; font-weight:700; } .dn { color:#f87171; font-weight:700; }
+  .rot { color:#facc15; font-weight:700; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:6px; }
+  .tile { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:12px 14px; }
+  .tile .v { font-size:23px; font-weight:800; }
+  .tile .l { font-size:13px; color:#94a3b8; margin-top:3px; }
+  .card { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:14px; margin-bottom:12px; font-size:16px; line-height:1.7; }
+  .card h4 { font-size:17px; margin-bottom:8px; }
+  .vs { display:grid; grid-template-columns:1fr; gap:10px; }
+  .bear { background:#2a1420; border:1px solid #7f2d3a; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65; }
+  .bull { background:#0f2a1c; border:1px solid #2f7a4d; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65; }
+  .bear h5 { color:#f87171; font-size:15px; margin-bottom:6px; }
+  .bull h5 { color:#4ade80; font-size:15px; margin-bottom:6px; }
+  ul.tight { padding-left:18px; font-size:15.5px; line-height:1.8; color:#cbd5e1; }
+  ul.tight li { margin-bottom:4px; }
+  .tag { display:inline-block; border-radius:20px; padding:1px 9px; font-size:12.5px; font-weight:700; }
+  .tag.up { background:rgba(74,222,128,.15); color:#4ade80; } .tag.dn { background:rgba(248,113,113,.15); color:#f87171; }
+  .tag.rot { background:rgba(250,204,21,.15); color:#facc15; }
+  .tag.mid { background:rgba(148,163,184,.15); color:#94a3b8; }
+  table.mini { width:100%; border-collapse:collapse; font-size:14px; }
+  table.mini td { padding:8px 4px; border-bottom:1px solid #1e2a44; vertical-align:top; line-height:1.55; }
+  .foot { font-size:13px; color:#64748b; text-align:center; margin-top:18px; }
+  /* cover */
+  .cover { justify-content:flex-start; }
+  .cover .inner { padding-top:7vh; }
+  .cover h1 { font-size:36px; font-weight:800; color:#fff; line-height:1.4; margin:10px 0 16px; }
+  .cover .date { font-size:13px; color:#94a3b8; }
+  /* nav */
+  #dots { position:fixed; bottom:calc(22px + env(safe-area-inset-bottom)); left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:10; }
+  #dots span { width:8px; height:8px; border-radius:50%; background:#334155; transition:all .25s; cursor:pointer; }
+  #dots span.on { background:#d4a94e; width:24px; border-radius:4px; }
+  .arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:10; width:40px; height:40px; border-radius:50%;
+           background:rgba(212,169,78,.12); border:1px solid rgba(212,169,78,.35); color:#d4a94e; font-size:18px;
+           display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; }
+  #prev { left:calc(8px + env(safe-area-inset-left)); } #next { right:calc(8px + env(safe-area-inset-right)); }
+  .arrow:active { background:rgba(212,169,78,.3); }
+  #counter { position:fixed; top:calc(16px + env(safe-area-inset-top)); right:calc(18px + env(safe-area-inset-right)); font-size:12px; color:#64748b; z-index:10; }
+  #fsbtn { position:fixed; right:calc(16px + env(safe-area-inset-right)); bottom:calc(60px + env(safe-area-inset-bottom)); z-index:10; width:40px; height:40px; border-radius:50%;
+           background:rgba(212,169,78,.15); border:1px solid rgba(212,169,78,.45); color:#d4a94e; font-size:18px;
+           display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; }
+  #fsbtn:active { background:rgba(212,169,78,.35); }
+  #fshint { position:fixed; left:50%; bottom:calc(110px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:30;
+           background:rgba(15,23,42,.95); border:1px solid #334155; color:#e2e8f0; font-size:14px; line-height:1.6;
+           padding:10px 16px; border-radius:10px; display:none; max-width:88vw; text-align:center; }
+  @media (max-width:480px){ h2.stitle{font-size:26px;} .cover h1{font-size:31px;} .arrow{display:none;} }
+  /* 平板/桌面：箭头可见时正文左右留出 64px，避免文字跑到箭头下面；内容列随屏宽放大，填满 iPad 全屏 */
+  @media (min-width:481px){ .slide{padding:calc(56px + env(safe-area-inset-top)) 64px calc(84px + env(safe-area-inset-bottom));} }
+  @media (min-width:768px){ .inner{max-width:860px;} h2.stitle{font-size:34px;} .cover h1{font-size:44px;} .lead{font-size:19px;} ul.tight{font-size:17px;} .card{font-size:17px;} .tile .v{font-size:26px;} table.mini{font-size:15px;} }
+  @media (min-width:1100px){ .inner{max-width:1000px;} h2.stitle{font-size:36px;} .cover h1{font-size:48px;} .lead{font-size:20px;} }
+  /* 打印 / 转 PDF（WhatsApp 里 PDF 查看器可真全屏）：每屏一页，长屏自然跨页，不断内容 */
+  @page { size: A4; margin: 0; }
+  @media print {
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    html, body { height:auto; overflow:visible; background:#0b1220; }
+    #deck { position:static; overflow:visible; height:auto; }
+    #track { display:block; height:auto; transform:none !important; }
+    .slide { flex:none; width:100%; height:auto; min-height:0; overflow:visible; padding:20px 22px; page-break-after:always; }
+    .slide:last-child { page-break-after:auto; }
+    #dots, .arrow, #counter, #fsbtn, #fshint { display:none !important; }
+    .cover .inner { padding-top:0; }
+  }
+</style>
+</head>
+<body>
+<div id="deck"><div id="track">
+<section class="slide cover"><div class="inner">
+<div class="kicker">板块轮动验证 · SLIDES</div>
+<h1>2026-10-14<br><span style="color:#d4a94e;">验证 10-13 预测</span></h1>
+<p class="lead">一句话：命中 <b>0/11</b>，10 平 1 偏差——唯一给出方向的 Space 判错；轮动日大盘平收，轮动未大幅兑现。</p>
+<div class="date" style="margin-top:14px;">数据口径：10-13 早间预测 vs 10-13 收盘实际 · yfinance 真实行情 · 左右滑动浏览 →</div>
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">01 · 预测 vs 实际</div>
+<h2 class="stitle">对比表（1/2）</h2>
+<table class="mini"><tr><td><b>板块</b></td><td><b>预测 STATE</b></td><td><b>实际涨跌</b></td><td><b>判定</b></td></tr><tr><td>GPU</td><td>ROTATING</td><td><span class="up">+0.14%</span></td><td><span class="tag mid">FLAT</span></td><td><span class="rot">rotate up ↑</span></td></tr><tr><td>CPU</td><td>ROTATING</td><td><span class="up">+1.25%</span></td><td><span class="tag mid">FLAT</span></td><td>—</td></tr><tr><td>Optical</td><td>ROTATING</td><td><span class="dn">-0.63%</span></td><td><span class="tag mid">FLAT</span></td><td>—</td></tr><tr><td>Data Centre</td><td>ROTATING</td><td><span class="dn">-1.95%</span></td><td><span class="tag mid">FLAT</span></td><td>—</td></tr><tr><td>Power</td><td>ROTATING</td><td><span class="up">+0.55%</span></td><td><span class="tag mid">FLAT</span></td><td><span class="rot">rotate up ↑</span></td></tr><tr><td>Memory</td><td>ROTATING</td><td><span class="dn">-2.36%</span></td><td><span class="tag mid">FLAT</span></td><td>—</td></tr></table><p class="lead" style="margin-top:10px;font-size:14px;">STATE 变化列 = 预测日（10-13）→ 验证日（10-14）STATE 对比；黄色为方向标注。</p>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">01 · 预测 vs 实际</div>
+<h2 class="stitle">对比表（2/2）</h2>
+<table class="mini"><tr><td><b>板块</b></td><td><b>预测 STATE</b></td><td><b>实际涨跌</b></td><td><b>判定</b></td></tr><tr><td>Cybersecurity</td><td>ROTATING</td><td><span class="dn">-0.87%</span></td><td><span class="tag mid">FLAT</span></td><td>—</td></tr><tr><td>Crypto</td><td>ROTATING</td><td><span class="up">+0.52%</span></td><td><span class="tag mid">FLAT</span></td><td><span class="rot">rotate up ↑</span></td></tr><tr><td>Biotech</td><td>ROTATING</td><td><span class="dn">-0.38%</span></td><td><span class="tag mid">FLAT</span></td><td>—</td></tr><tr><td>Space</td><td>BULLISH</td><td><span class="dn">-4.21%</span></td><td><span class="tag dn">MISS</span></td><td><span class="rot">rotate down ↓</span></td></tr><tr><td>AI 应用</td><td>ROTATING</td><td><span class="up">+0.93%</span></td><td><span class="tag mid">FLAT</span></td><td>—</td></tr></table><p class="lead" style="margin-top:10px;font-size:14px;">注：验证脚本将未降级的 ROTATING 按分层口径计入强弱档（Crypto/Biotech 说明文字已按实际预测 STATE 归一为 ROTATING），判定结果仍为 FLAT。</p>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">02 · 统计</div>
+<h2 class="stitle">命中率 0%</h2>
+<div class="grid">
+<div class="tile"><div class="v">0 / 11</div><div class="l">HIT（命中）</div></div>
+<div class="tile"><div class="v">10</div><div class="l">FLAT（平）</div></div>
+<div class="tile"><div class="v dn">1</div><div class="l">MISS（偏差）· Space</div></div>
+<div class="tile"><div class="v">0 / 1</div><div class="l">预警板块方向准确率</div></div>
+</div>
+<p class="lead" style="margin-top:12px;font-size:15.5px;">实际 |波动| ≥ 1% 的板块 4 个（CPU、Data Centre、Memory、Space），其中 1 个被预测给方向（Space，但方向判错）。</p>
+<p class="lead" style="margin-top:8px;font-size:15.5px;">近两次验证合计 HIT <b>2 / 21</b>（前日 2/10，本日 0/11）——置信度降档参考。</p>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">03 · MISS / FLAT 点评</div>
+<h2 class="stitle">Space 判错 + 轮动日 FLAT 居多</h2>
+<div class="card"><h4><span class="dn">▼ MISS · Space（预测 BULLISH 69.6，实际 -4.21%）</span></h4>
+<p style="font-size:14px;color:#cbd5e1;">预测时广度/VWAP 满分，LEADER SPCX 实际 -4.21% 与板块一致。当晚 ASTS 遭 Piper Sandler 降评至 Neutral、目标价 $98→$54，加 SpaceX 频谱事件冲击太空/电讯链——<b>单一事件一夜推翻满分信号</b>，模型未能捕捉事件风险。</p></div>
+<div class="card"><h4>FLAT · 10 个 ROTATING 全部 FLAT</h4>
+<p style="font-size:14px;color:#cbd5e1;">最大波幅仅 Memory -2.36%，均未达 ROTATING 兑现门槛（&gt;4%）。当日 SPY -0.01% 平收——分化盘整日轮动未兑现是常态；ROTATING 在平静日倾向 FLAT，判定口径本身偏保守。</p></div>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">04 · 💡交易含义</div>
+<h2 class="stitle">事件日不以板块信号下重注</h2>
+<ul class="tight">
+<li><b>方向预测在事件日最脆弱</b>：Space 的教训——降评/频谱类单一事件可一夜推翻满分信号，事件日不以板块信号下重注。</li>
+<li><b>ROTATING 为主的日子不硬做方向</b>：昨日 10/11 ROTATING；今日 3 个 BULLISH 新转强，需当日确认（CPI）。</li>
+<li><b>置信度降档</b>：近两次验证合计 2/21 HIT，今日精选只打最高质量的一笔，其余备选。</li>
+<li><b>可复用框架</b>：板块信号是“结构底色”，个股事件是“当日变量”——两者冲突时，事件优先、降预期。</li>
+</ul>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">附录 · 被验证预测（10-13）</div>
+<h2 class="stitle">板块六信号表（1/2）</h2>
+<table class="mini"><tr><td><b>板块</b></td><td><b>综合分</b></td><td><b>STATE</b></td><td><b>RS / 量能 / 广度 / 龙头 / 资金 / VWAP</b></td></tr><tr><td>GPU</td><td>51.6</td><td>ROTATING</td><td>0 / 30 / 50 / 24 / 50 / 74</td></tr><tr><td>CPU</td><td>47.0</td><td>ROTATING</td><td>13 / 30 / 50 / 4 / 71 / 7</td></tr><tr><td>Optical</td><td>53.8</td><td>ROTATING</td><td>0 / 66 / 50 / 0 / 51 / 86</td></tr><tr><td>Data Centre</td><td>52.7</td><td>ROTATING</td><td>0 / 31 / 50 / 0 / 65 / 100</td></tr><tr><td>Power</td><td>48.1</td><td>ROTATING</td><td>8 / 32 / 50 / 0 / 60 / 100</td></tr><tr><td>Memory</td><td>46.5</td><td>ROTATING</td><td>0 / 51 / 50 / 0 / 69 / 0</td></tr></table>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">附录 · 被验证预测（10-13）</div>
+<h2 class="stitle">板块六信号表（2/2）</h2>
+<table class="mini"><tr><td><b>板块</b></td><td><b>综合分</b></td><td><b>STATE</b></td><td><b>RS / 量能 / 广度 / 龙头 / 资金 / VWAP</b></td></tr><tr><td>Cybersecurity</td><td>45.4</td><td>ROTATING</td><td>0 / 34 / 50 / 0 / 51 / 100</td></tr><tr><td>Crypto</td><td>46.0</td><td>ROTATING</td><td>52 / 30 / 70 / 43 / 55 / 0</td></tr><tr><td>Biotech</td><td>53.7</td><td>ROTATING</td><td>33 / 30 / 81 / 11 / 79 / 100</td></tr><tr><td>Space</td><td>69.6</td><td>BULLISH</td><td>65 / 36 / 100 / 59 / 63 / 100</td></tr><tr><td>AI 应用</td><td>60.5</td><td>ROTATING</td><td>75 / 40 / 90 / 68 / 59 / 100</td></tr></table>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">附录 · 被验证预测（10-13）</div>
+<h2 class="stitle">个股评分表（1/2）</h2>
+<table class="mini"><tr><td><b>Ticker</b></td><td><b>个股评分</b></td><td><b>方向</b></td><td><b>当日%</b></td></tr><tr><td>OKTA</td><td>100.0</td><td>down</td><td>-2.14%</td></tr><tr><td>MRNA</td><td>100.0</td><td>down</td><td>-5.02%</td></tr><tr><td>HPE</td><td>100.0</td><td>down</td><td>-4.30%</td></tr><tr><td>META</td><td>90.9</td><td>up</td><td>+3.41%</td></tr><tr><td>CEG</td><td>87.2</td><td>down</td><td>-1.43%</td></tr><tr><td>DELL</td><td>78.9</td><td>down</td><td>-1.69%</td></tr><tr><td>AMGN</td><td>67.8</td><td>up</td><td>+0.61%</td></tr><tr><td>LLY</td><td>60.0</td><td>up</td><td>+0.28%</td></tr><tr><td>CIEN</td><td>59.3</td><td>down</td><td>-9.96%</td></tr><tr><td>GEV</td><td>58.6</td><td>down</td><td>-0.73%</td></tr><tr><td>PANW</td><td>57.6</td><td>down</td><td>-3.61%</td></tr><tr><td>SPCX</td><td>50.4</td><td>up</td><td>+0.55%</td></tr><tr><td>TSLA</td><td>43.8</td><td>down</td><td>-1.22%</td></tr><tr><td>CRWD</td><td>42.2</td><td>down</td><td>-4.37%</td></tr><tr><td>AMD</td><td>27.1</td><td>down</td><td>-2.29%</td></tr><tr><td>CRDO</td><td>23.5</td><td>down</td><td>-7.21%</td></tr><tr><td>MSTR</td><td>22.9</td><td>down</td><td>-0.99%</td></tr><tr><td>AVGO</td><td>20.3</td><td>down</td><td>-1.90%</td></tr></table>
+
+</div></section>
+<section class="slide"><div class="inner">
+<div class="kicker">附录 · 被验证预测（10-13）</div>
+<h2 class="stitle">个股评分表（2/2）</h2>
+<table class="mini"><tr><td><b>Ticker</b></td><td><b>个股评分</b></td><td><b>方向</b></td><td><b>当日%</b></td></tr><tr><td>COIN</td><td>18.6</td><td>up</td><td>+0.48%</td></tr><tr><td>NVDA</td><td>16.1</td><td>down</td><td>-1.27%</td></tr><tr><td>CRCL</td><td>14.0</td><td>down</td><td>-0.78%</td></tr><tr><td>QCOM</td><td>7.9</td><td>down</td><td>-0.63%</td></tr><tr><td>HOOD</td><td>7.6</td><td>up</td><td>+0.18%</td></tr><tr><td>MU</td><td>3.0</td><td>down</td><td>-3.81%</td></tr><tr><td>INTC</td><td>0.0</td><td>down</td><td>-3.22%</td></tr><tr><td>BE</td><td>0.0</td><td>down</td><td>-6.44%</td></tr><tr><td>COHR</td><td>0.0</td><td>down</td><td>-7.91%</td></tr><tr><td>GLW</td><td>0.0</td><td>down</td><td>-6.01%</td></tr><tr><td>ARM</td><td>0.0</td><td>down</td><td>-4.31%</td></tr><tr><td>CRWV</td><td>0.0</td><td>down</td><td>-2.28%</td></tr><tr><td>NBIS</td><td>0.0</td><td>down</td><td>-4.96%</td></tr><tr><td>SMCI</td><td>0.0</td><td>down</td><td>-4.45%</td></tr><tr><td>LITE</td><td>0.0</td><td>down</td><td>-9.79%</td></tr><tr><td>AAOI</td><td>0.0</td><td>down</td><td>-8.14%</td></tr><tr><td>SKHY</td><td>0.0</td><td>down</td><td>-4.06%</td></tr><tr><td>SNDK</td><td>0.0</td><td>down</td><td>-5.98%</td></tr></table><div class="foot">本输出为信号监测与筛选，不构成投资建议。</div>
+
+</div></section>
+</div></div>
+
+<div id="fsbtn" title="全屏">⛶</div>
+<div id="fshint">WhatsApp 内无法全屏，请点分享 → 在 Safari 中打开</div>
+<div id="counter">1 / 3</div>
+<div class="arrow" id="prev">‹</div>
+<div class="arrow" id="next">›</div>
+<div id="dots"></div>
+
+<script>
+(function(){
+  var track = document.getElementById('track');
+  var slides = track.children.length;
+  var idx = 0, dots = document.getElementById('dots'), counter = document.getElementById('counter');
+  for (var i=0;i<slides;i++){ (function(n){ var s=document.createElement('span'); s.onclick=function(){go(n);}; dots.appendChild(s); })(i); }
+  function go(n){
+    idx = Math.max(0, Math.min(slides-1, n));
+    track.style.transform = 'translateX(-' + (idx*100) + '%)';
+    var ds = dots.children;
+    for (var i=0;i<ds.length;i++) ds[i].className = i===idx ? 'on' : '';
+    counter.textContent = (idx+1) + ' / ' + slides;
+  }
+  document.getElementById('prev').onclick = function(){ go(idx-1); };
+  document.getElementById('next').onclick = function(){ go(idx+1); };
+  document.addEventListener('keydown', function(e){
+    if (e.key==='ArrowRight'||e.key===' ') go(idx+1);
+    if (e.key==='ArrowLeft') go(idx-1);
+  });
+  var sx=0, dx=0, dragging=false;
+  var deck = document.getElementById('deck');
+  deck.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; dx=0; dragging=true; }, {passive:true});
+  deck.addEventListener('touchmove', function(e){ if(dragging) dx=e.touches[0].clientX-sx; }, {passive:true});
+  deck.addEventListener('touchend', function(e){
+    dragging=false;
+    if (Math.abs(dx)>60){ go(idx + (dx<0?1:-1)); }
+  });
+  var msx=0, mdx=0, mdown=false;
+  deck.addEventListener('mousedown', function(e){ mdown=true; msx=e.clientX; mdx=0; });
+  deck.addEventListener('mousemove', function(e){ if(mdown) mdx=e.clientX-msx; });
+  deck.addEventListener('mouseup', function(){ if(mdown&&Math.abs(mdx)>80) go(idx+(mdx<0?1:-1)); mdown=false; });
+  var fs = document.getElementById('fsbtn');
+  function showHint(){
+    var h = document.getElementById('fshint');
+    h.style.display = 'block';
+    clearTimeout(h._t);
+    h._t = setTimeout(function(){ h.style.display = 'none'; }, 3500);
+  }
+  fs.onclick = function(){
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        var p = (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        if (p && p.catch) p.catch(showHint);
+      } else {
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) { showHint(); return; }
+        var r = req.call(el);
+        if (r && r.catch) r.catch(showHint);
+      }
+    } catch(e) { showHint(); }
+  };
+  go(0);
+})();
+</script>
+</body>
+</html>

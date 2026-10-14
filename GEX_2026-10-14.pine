@@ -1,0 +1,140 @@
+//@version=5
+// ══════════════════════════════════════════════════════════
+// GEX Dashboard  |  2026-10-14
+// ══════════════════════════════════════════════════════════
+indicator("GEX Dashboard 2026-10-14", overlay=true, max_lines_count=500, max_labels_count=500, max_bars_back=5000)
+
+// ===== UI 控制设置 =====
+show_dashboard  = input.bool(false, "显示右侧仪表盘表格", group="仪表盘设置")
+
+gex_line_width  = input.int(1, "GEX 线条粗细", minval=1, maxval=5, group="GEX 线条设置")
+override_gex_cl = input.bool(false, "使用统一 GEX 线条颜色", group="GEX 线条设置")
+gex_custom_cl   = input.color(#ff9800, "自定义 GEX 统一颜色", group="GEX 线条设置")
+
+em_line_width   = input.int(1, "Expected Move 线条粗细", minval=1, maxval=5, group="Expected Move 设置")
+em_line_color   = input.color(#ffffff, "Expected Move 线条颜色", group="Expected Move 设置")
+em_label_bg     = input.color(#2e2e2e, "Expected Move 标签背景颜色", group="Expected Move 设置")
+em_label_txt    = input.color(#ffffff, "Expected Move 标签文字颜色", group="Expected Move 设置")
+
+// ===== 画线数据数组 =====
+var string[] tk_arr = array.new_string(0)
+var float[]  pr_arr = array.new_float(0)
+var color[]  cl_arr = array.new_color(0)
+var string[] lb_arr = array.new_string(0)
+
+// ===== 右侧仪表盘数据数组 =====
+var string[] d_tk    = array.new_string(0)
+var string[] d_gex   = array.new_string(0)
+var string[] d_skew  = array.new_string(0)
+var string[] d_iv    = array.new_string(0)
+var string[] d_term  = array.new_string(0)
+var string[] d_em1   = array.new_string(0)
+var string[] d_em2   = array.new_string(0)
+var float[]  d_em1_v = array.new_float(0)
+var float[]  d_em2_v = array.new_float(0)
+
+if barstate.isfirst
+    array.concat(tk_arr, array.from("AAOI", "AAOI", "AAOI", "BE", "BE", "BE", "CRWV", "CRWV", "CRWV", "CRWD", "CRWD", "CRWD", "DELL", "DELL", "DELL", "INTC", "INTC", "INTC", "LITE", "LITE", "LITE", "MRNA", "MRNA", "MRNA", "MSTR", "MSTR", "MSTR", "NBIS", "NBIS", "NBIS", "PLTR", "PLTR", "PLTR", "SKHY", "SKHY", "SKHY", "SNDK", "SNDK", "SNDK", "SOXL", "SOXL", "SOXL", "SPCX", "SPCX", "SPCX", "SPY", "SPY", "SPY", "HPE", "HPE", "HPE", "MU", "MU", "MU", "OKTA", "OKTA", "OKTA", "NET", "NET", "NET", "PANW", "PANW", "PANW", "ZS", "ZS", "ZS", "HOOD", "HOOD", "HOOD", "AAPL", "AAPL", "AAPL", "MSFT", "MSFT", "MSFT", "NVDA", "NVDA", "NVDA", "AMZN", "AMZN", "AMZN", "GOOGL", "GOOGL", "GOOGL", "META", "META", "META", "TSLA", "TSLA", "TSLA", "AMD", "AMD", "AMD", "MRVL", "MRVL", "MRVL", "NOK", "NOK", "NOK", "DOCN", "DOCN", "DOCN", "QCOM", "QCOM", "QCOM", "AVGO", "AVGO", "AVGO"))
+    array.concat(pr_arr, array.from(120, 90, 102.12, 280, 240, 259.2, 110, 70, 83.65, 300, 255, na, 600, 500, 521.03, 110, 95, 101.8, 1100, 950, 1009.02, 217.5, 205, 171.4, 157.5, 142, 139.87, 300, 200, 210.07, 210, 140, 171.56, 200, 155, 172.28, 1520, 1400, 1573.42, 150, 120, 144.08, 200, 135, 154.55, 785, 772, 777.11, 70, 50, na, 1200, 950, 960.35, 230, 212.5, na, 360, 330, na, 400, 350, 355.61, 240, 160, na, 120, 100, 102.73, 350, 337.5, 306.64, 550, 475, na, 240, 205, 208.32, 260, 240, 238.52, 370, 330, 332.03, 800, 740, na, 400, 370, 365.65, 620, 550, 557.88, 300, 257.5, 245.04, 12, 9, na, 180, 110, 122.88, 200, 160, 172.54, 400, 340, 356.94))
+    array.concat(cl_arr, array.from(#4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800, #4caf50, #f23645, #ff9800))
+    array.concat(lb_arr, array.from("CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA", "CALL WALL", "PUT WALL", "ZERO GAMMA"))
+
+    array.concat(d_tk, array.from("AAOI", "BE", "CRWV", "CRWD", "DELL", "INTC", "LITE", "MRNA", "MSTR", "NBIS", "PLTR", "SKHY", "SNDK", "SOXL", "SPCX", "SPY", "HPE", "MU", "OKTA", "NET", "PANW", "ZS", "HOOD", "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AMD", "MRVL", "NOK", "DOCN", "QCOM", "AVGO"))
+    array.concat(d_gex, array.from("", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""))
+    array.concat(d_skew, array.from("", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""))
+    array.concat(d_iv, array.from("104.8", "79.3", "83.3", "54.9", "70.1", "70.5", "80.7", "96.1", "73.1", "82.9", "45.9", "67.6", "75", "130.4", "54.1", "13.9", "67.3", "64", "58", "59.1", "49.3", "58.6", "63.1", "26.7", "27", "39.7", "36", "42.3", "40.9", "39.7", "60.3", "77.1", "60.9", "92.9", "53.2", "48.9"))
+    array.concat(d_term, array.from("", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""))
+    array.concat(d_em1, array.from("6.60", "5.00", "5.25", "3.46", "4.42", "4.44", "5.09", "6.06", "4.61", "5.22", "2.89", "4.26", "4.73", "8.22", "3.41", "0.88", "4.24", "4.03", "3.65", "3.72", "3.11", "3.69", "3.98", "1.68", "1.70", "2.50", "2.27", "2.67", "2.58", "2.50", "3.80", "4.86", "3.84", "5.85", "3.35", "3.08"))
+    array.concat(d_em2, array.from("13.20730938878387", "9.993698802772528", "10.497794580970384", "6.918714555765596", "8.834278512917454", "8.88468809073724", "10.170132325141777", "12.110901071203529", "9.212350346565847", "10.4473850031506", "5.784499054820416", "8.519218651543794", "9.45179584120983", "16.43352236925016", "6.817895400126025", "1.7517328292375554", "8.481411468178955", "8.065532451165723", "7.309388783868935", "7.448015122873347", "6.212980466288594", "7.385003150598615", "7.952110901071204", "3.3648393194706996", "3.402646502835539", "5.003150598613737", "4.536862003780718", "5.330812854442344", "5.154379332073094", "5.003150598613737", "7.599243856332703", "9.716446124763705", "7.674858223062382", "11.707624448645245", "6.704473850031507", "6.162570888468809"))
+    array.concat(d_em1_v, array.from(0.066, 0.05, 0.0525, 0.0346, 0.044199999999999996, 0.0444, 0.0509, 0.060599999999999994, 0.0461, 0.052199999999999996, 0.028900000000000002, 0.0426, 0.0473, 0.08220000000000001, 0.0341, 0.0088, 0.0424, 0.0403, 0.0365, 0.037200000000000004, 0.0311, 0.0369, 0.0398, 0.0168, 0.017, 0.025, 0.0227, 0.026699999999999998, 0.0258, 0.025, 0.038, 0.048600000000000004, 0.0384, 0.058499999999999996, 0.0335, 0.0308))
+    array.concat(d_em2_v, array.from(0.1320730938878387, 0.09993698802772527, 0.10497794580970383, 0.06918714555765595, 0.08834278512917454, 0.0888468809073724, 0.10170132325141777, 0.12110901071203528, 0.09212350346565847, 0.104473850031506, 0.05784499054820416, 0.08519218651543793, 0.0945179584120983, 0.1643352236925016, 0.06817895400126024, 0.017517328292375553, 0.08481411468178955, 0.08065532451165723, 0.07309388783868935, 0.07448015122873347, 0.062129804662885944, 0.07385003150598615, 0.07952110901071203, 0.033648393194707, 0.034026465028355386, 0.05003150598613737, 0.04536862003780718, 0.05330812854442344, 0.05154379332073094, 0.05003150598613737, 0.07599243856332703, 0.09716446124763704, 0.07674858223062382, 0.11707624448645244, 0.06704473850031506, 0.061625708884688095))
+
+// 追踪当日 9:30 开盘第一根 K 线的 UNIX 时间戳 (open_time)
+var int open_time = na
+if ta.change(time("D"))
+    open_time := time
+
+// 美东时间 (America/New_York) 精准时间控制
+ny_hour     = hour(time, "America/New_York")
+ny_minute   = minute(time, "America/New_York")
+ny_time_num = ny_hour * 100 + ny_minute
+
+ny_day        = dayofmonth(time, "America/New_York")
+is_new_ny_day = ta.change(ny_day) != 0
+
+var float cur_rth_close  = na
+var float prev_rth_close = na
+if ny_time_num >= 930 and ny_time_num <= 1600
+    cur_rth_close := close
+
+var int cur_8pm_time  = na
+var int prev_8pm_time = na
+if ny_hour == 20 and ny_minute == 0
+    cur_8pm_time := time
+
+if is_new_ny_day
+    if not na(cur_rth_close)
+        prev_rth_close := cur_rth_close
+    if not na(cur_8pm_time)
+        prev_8pm_time := cur_8pm_time
+
+d_close_0 = request.security(syminfo.tickerid, "D", close)
+d_close_1 = request.security(syminfo.tickerid, "D", close[1])
+d_close_fallback = ny_time_num < 930 ? d_close_0 : d_close_1
+target_prev_close = not na(prev_rth_close) ? prev_rth_close : d_close_fallback
+
+y_ny = year(time, "America/New_York")
+m_ny = month(time, "America/New_York")
+d_ny = dayofmonth(time, "America/New_York")
+fallback_8pm_time = timestamp("America/New_York", y_ny, m_ny, d_ny - 1, 20, 0, 0)
+em_start_t = not na(prev_8pm_time) ? prev_8pm_time : fallback_8pm_time
+
+current_ticker = syminfo.ticker
+
+if barstate.islast
+    label_1630_t = timestamp("America/New_York", y_ny, m_ny, d_ny, 16, 30, 0)
+    end_8pm_t    = timestamp("America/New_York", y_ny, m_ny, d_ny, 20, 0, 0)
+
+    if array.size(tk_arr) > 0
+        start_t = na(open_time) ? time : open_time
+        for i = 0 to array.size(tk_arr) - 1
+            if array.get(tk_arr, i) == current_ticker
+                target_price = array.get(pr_arr, i)
+                line_color   = override_gex_cl ? gex_custom_cl : array.get(cl_arr, i)
+                label_text   = array.get(lb_arr, i)
+                line.new(x1=start_t, y1=target_price, x2=end_8pm_t, y2=target_price, xloc=xloc.bar_time, extend=extend.none, color=line_color, width=gex_line_width, style=line.style_solid)
+                if label_text != ""
+                    label.new(x=label_1630_t, y=target_price, text=label_text + " $" + str.tostring(target_price), xloc=xloc.bar_time, color=color.new(line_color, 20), textcolor=color.white, style=label.style_label_center, textalign=text.align_center, size=size.small)
+
+    if array.size(d_tk) > 0
+        for k = 0 to array.size(d_tk) - 1
+            if array.get(d_tk, k) == current_ticker
+                em1_pct = array.get(d_em1_v, k)
+                em2_pct = array.get(d_em2_v, k)
+                if not na(target_prev_close) and target_prev_close > 0
+                    p_em1_up = target_prev_close * (1.0 + em1_pct)
+                    p_em1_dn = target_prev_close * (1.0 - em1_pct)
+                    p_em2_up = target_prev_close * (1.0 + em2_pct)
+                    p_em2_dn = target_prev_close * (1.0 - em2_pct)
+                    line.new(x1=em_start_t, y1=p_em1_up, x2=end_8pm_t, y2=p_em1_up, xloc=xloc.bar_time, extend=extend.none, color=em_line_color, width=em_line_width, style=line.style_dashed)
+                    line.new(x1=em_start_t, y1=p_em1_dn, x2=end_8pm_t, y2=p_em1_dn, xloc=xloc.bar_time, extend=extend.none, color=em_line_color, width=em_line_width, style=line.style_dashed)
+                    line.new(x1=em_start_t, y1=p_em2_up, x2=end_8pm_t, y2=p_em2_up, xloc=xloc.bar_time, extend=extend.none, color=em_line_color, width=em_line_width, style=line.style_dashed)
+                    line.new(x1=em_start_t, y1=p_em2_dn, x2=end_8pm_t, y2=p_em2_dn, xloc=xloc.bar_time, extend=extend.none, color=em_line_color, width=em_line_width, style=line.style_dashed)
+                    label.new(x=label_1630_t, y=p_em1_up, text="1σ", xloc=xloc.bar_time, color=em_label_bg, textcolor=em_label_txt, style=label.style_label_center, textalign=text.align_center, size=size.small)
+                    label.new(x=label_1630_t, y=p_em1_dn, text="-1σ", xloc=xloc.bar_time, color=em_label_bg, textcolor=em_label_txt, style=label.style_label_center, textalign=text.align_center, size=size.small)
+                    label.new(x=label_1630_t, y=p_em2_up, text="2σ", xloc=xloc.bar_time, color=em_label_bg, textcolor=em_label_txt, style=label.style_label_center, textalign=text.align_center, size=size.small)
+                    label.new(x=label_1630_t, y=p_em2_dn, text="-2σ", xloc=xloc.bar_time, color=em_label_bg, textcolor=em_label_txt, style=label.style_label_center, textalign=text.align_center, size=size.small)
+
+    if show_dashboard and array.size(d_tk) > 0
+        for j = 0 to array.size(d_tk) - 1
+            if array.get(d_tk, j) == current_ticker
+                v_iv  = array.get(d_iv, j)
+                v_em1 = array.get(d_em1, j)
+                v_em2 = array.get(d_em2, j)
+                var table dash_tbl = table.new(position.middle_right, 2, 3, bgcolor=#131722, border_width=1, border_color=#363c4e)
+                table.cell(dash_tbl, 0, 0, "ATM IV (%)", bgcolor=#1e222d, text_color=color.white, text_size=size.normal)
+                table.cell(dash_tbl, 1, 0, v_iv, bgcolor=#2a2e39, text_color=color.white, text_size=size.normal)
+                table.cell(dash_tbl, 0, 1, "EXP. MOVE 1σ", bgcolor=#1e222d, text_color=color.white, text_size=size.normal)
+                table.cell(dash_tbl, 1, 1, v_em1, bgcolor=#2a2e39, text_color=color.white, text_size=size.normal)
+                table.cell(dash_tbl, 0, 2, "EXP. MOVE 2σ", bgcolor=#1e222d, text_color=color.white, text_size=size.normal)
+                table.cell(dash_tbl, 1, 2, v_em2, bgcolor=#2a2e39, text_color=color.white, text_size=size.normal)

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>InvesTalk 美股速递 2026-10-15</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html, body { height:100%; overflow:hidden;}
+body { font-family:-apple-system,'PingFang SC','PingFang TC','Microsoft YaHei','Microsoft JhengHei','Segoe UI',Arial,sans-serif; background:#0b1220; color:#e2e8f0;}
+#deck { position:fixed; inset:0; overflow:hidden;}
+#track { display:flex; height:100%; transition:transform.38s cubic-bezier(.32,.72,.35,1);}
+.slide { flex:0 0 100%; height:100%; overflow-y:auto; padding:calc(56px + env(safe-area-inset-top)) 22px calc(84px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; justify-content:flex-start;}
+.inner { max-width:680px; width:100%; margin:0 auto;}
+.kicker { font-size:14px; letter-spacing:2px; color:#d4a94e; font-weight:700; margin-bottom:10px;}
+h2.stitle { font-size:30px; font-weight:800; color:#fff; margin-bottom:14px; line-height:1.35;}
+.lead { font-size:17px; line-height:1.75; color:#cbd5e1;}
+.lead b { color:#fff;}
+.up { color:#4ade80; font-weight:700;}.dn { color:#f87171; font-weight:700;}
+.rot { color:#facc15; font-weight:700;}
+.grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:6px;}
+.tile { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:12px 14px;}
+.tile.v { font-size:23px; font-weight:800;}
+.tile.l { font-size:13px; color:#94a3b8; margin-top:3px;}
+.card { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:14px; margin-bottom:12px; font-size:16px; line-height:1.7;}
+.card h4 { font-size:17px; margin-bottom:8px;}
+.vs { display:grid; grid-template-columns:1fr; gap:10px;}
+.bear { background:#2a1420; border:1px solid #7f2d3a; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65;}
+.bull { background:#0f2a1c; border:1px solid #2f7a4d; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65;}
+.bear h5 { color:#f87171; font-size:15px; margin-bottom:6px;}
+.bull h5 { color:#4ade80; font-size:15px; margin-bottom:6px;}
+ul.tight { padding-left:18px; font-size:15.5px; line-height:1.8; color:#cbd5e1;}
+ul.tight li { margin-bottom:4px;}
+.tag { display:inline-block; border-radius:20px; padding:1px 9px; font-size:12.5px; font-weight:700;}
+.tag.up { background:rgba(74,222,128,.15); color:#4ade80;}.tag.dn { background:rgba(248,113,113,.15); color:#f87171;}
+.tag.rot { background:rgba(250,204,21,.15); color:#facc15;}
+.tag.mid { background:rgba(148,163,184,.15); color:#94a3b8;}
+table.mini { width:100%; border-collapse:collapse; font-size:14px;}
+table.mini td { padding:8px 4px; border-bottom:1px solid #1e2a44; vertical-align:top; line-height:1.55;}
+.foot { font-size:13px; color:#64748b; text-align:center; margin-top:18px;}
+.cover { justify-content:flex-start;}
+.cover.inner { padding-top:7vh;}
+.cover h1 { font-size:36px; font-weight:800; color:#fff; line-height:1.4; margin:10px 0 16px;}
+.cover.date { font-size:13px; color:#94a3b8;}
+#dots { position:fixed; bottom:calc(22px + env(safe-area-inset-bottom)); left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:10;}
+#dots span { width:8px; height:8px; border-radius:50%; background:#334155; transition:all.25s; cursor:pointer;}
+#dots span.on { background:#d4a94e; width:24px; border-radius:4px;}
+.arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:10; width:40px; height:40px; border-radius:50%;
+background:rgba(212,169,78,.12); border:1px solid rgba(212,169,78,.35); color:#d4a94e; font-size:18px;
+display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none;}
+#prev { left:calc(8px + env(safe-area-inset-left));} #next { right:calc(8px + env(safe-area-inset-right));}
+.arrow:active { background:rgba(212,169,78,.3);}
+#counter { position:fixed; top:calc(16px + env(safe-area-inset-top)); right:calc(18px + env(safe-area-inset-right)); font-size:12px; color:#64748b; z-index:10;}
+#fsbtn { position:fixed; right:calc(16px + env(safe-area-inset-right)); bottom:calc(60px + env(safe-area-inset-bottom)); z-index:10; width:40px; height:40px; border-radius:50%;
+background:rgba(212,169,78,.15); border:1px solid rgba(212,169,78,.45); color:#d4a94e; font-size:18px;
+display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none;}
+#fsbtn:active { background:rgba(212,169,78,.35);}
+#fshint { position:fixed; left:50%; bottom:calc(110px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:30;
+background:rgba(15,23,42,.95); border:1px solid #334155; color:#e2e8f0; font-size:14px; line-height:1.6;
+padding:10px 16px; border-radius:10px; display:none; max-width:88vw; text-align:center;}
+@media (max-width:480px){ h2.stitle{font-size:26px;}.cover h1{font-size:31px;}.arrow{display:none;}}
+@media (min-width:481px){.slide{padding:calc(56px + env(safe-area-inset-top)) 64px calc(84px + env(safe-area-inset-bottom));}}
+@media (min-width:768px){.inner{max-width:860px;} h2.stitle{font-size:34px;}.cover h1{font-size:44px;}.lead{font-size:19px;} ul.tight{font-size:17px;}.card{font-size:17px;}.tile.v{font-size:26px;} table.mini{font-size:15px;}}
+@media (min-width:1100px){.inner{max-width:1000px;} h2.stitle{font-size:36px;}.cover h1{font-size:48px;}.lead{font-size:20px;}}
+@page { size: A4; margin: 0;}
+@media print {
+* { -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important;}
+html, body { height:auto; overflow:visible; background:#0b1220;}
+#deck { position:static; overflow:visible; height:auto;}
+#track { display:block; height:auto; transform:none!important;}
+.slide { flex:none; width:100%; height:auto; min-height:0; overflow:visible; padding:20px 22px; page-break-after:always;}
+.slide:last-child { page-break-after:auto;}
+#dots,.arrow, #counter, #fsbtn, #fshint { display:none!important;}
+.cover.inner { padding-top:0;}
+}
+</style>
+</head>
+<body>
+<div id="deck"><div id="track">
+
+<!-- 1 封面 -->
+<section class="slide cover"><div class="inner">
+<div class="kicker">InvesTalk 美股速递 · SLIDE版</div>
+<h1>2026-10-15<br><span style="color:#d4a94e;">美股速递</span></h1>
+<p class="lead">一句话主线：CPI <span class="dn">升3.7%重燃加息押注</span>，美股全线回落；<span class="dn">韩股暴挫7%</span>、日股大跌；<span class="dn">CRWV股债双杀</span>引爆AI基建融资危机疑虑；<span class="up">Anthropic Q3收入增45%</span>、<span class="up">ASML上调展望</span>成少数亮点。</p>
+<div class="date" style="margin-top:14px;">2026年10月15日上午直播（回顾昨晚10月14日美股）<br>左右滑动浏览 →</div>
+</div></section>
+
+<!-- 2 宏观 -->
+<section class="slide"><div class="inner">
+<div class="kicker">01 · 宏观</div>
+<h2 class="stitle">CPI超预期：加息押注重燃</h2>
+<div class="grid">
+<div class="tile"><div class="v dn">+3.7%</div><div class="l">美国9月CPI升幅，高于市场预期</div></div>
+<div class="tile"><div class="v dn">约 -1%</div><div class="l">美股三大指数均下跌，跌幅大约在1%上下，纳指跌幅相对较大</div></div>
+<div class="tile"><div class="v dn">债息上行</div><div class="l">通胀数据公布后债息走高，利率敏感板块受压</div></div>
+<div class="tile"><div class="v">美元走强 · 金价升</div><div class="l">资金流向避险资产，波动指标上升</div></div>
+</div>
+<ul class="tight" style="margin-top:10px;">
+<li><b>通胀与利率</b>：CPI高于预期，令市场重新讨论加息可能性；节目认为当前市场同时面对通胀、利率预期与高估值三重压力</li>
+<li><b>盘面</b>：科技股压力较明显；波动指标上升，显示市场不安情绪增加</li>
+<li><b>其他市场</b>：比特币与油价亦在节目中被提及，具体数字<span class="dn">未提供</span></li>
+</ul>
+</div></section>
+
+<!-- 3 个股一 -->
+<section class="slide"><div class="inner">
+<div class="kicker">02 · 个股詳情（一）</div>
+<h2 class="stitle">UNH逆势领涨 / CRWV股债双杀</h2>
+<ul class="tight">
+<li><b>UNH（联合健康）</b> <span class="up">业绩公布后升约5%</span>，成为当日大盘升幅前列的股份之一：业绩或指引改善，是当日少数亮点（具体财报数字<span class="dn">未提供</span>）</li>
+<li><b>CRWV（CoreWeave）</b> <span class="dn">股债双杀</span>：股价与债券价格同时受压；市场关注其资本开支与借贷成本，AI基建股爆发融资危机疑虑（具体跌幅<span class="dn">未提供</span>）</li>
+</ul>
+</div></section>
+
+<!-- 4 个股二 -->
+<section class="slide"><div class="inner">
+<div class="kicker">03 · 个股詳情（二）</div>
+<h2 class="stitle">Anthropic与ASML：AI链的亮点</h2>
+<ul class="tight">
+<li><b>Anthropic（未上市）</b> <span class="up">Q3收入按年增约45%</span>，并称其经调整后转盈，成为行业内的正面消息</li>
+<li><b>ASML</b> <span class="up">上调展望</span>，带动相关板块讨论；但整体半导体股仍受大市拖累（具体指引数字<span class="dn">未提供</span>）</li>
+</ul>
+</div></section>
+
+<!-- 5 亚太 -->
+<section class="slide"><div class="inner">
+<div class="kicker">04 · 亚太</div>
+<h2 class="stitle">韩股暴挫7% / 日股大跌</h2>
+<ul class="tight">
+<li><b>韩股</b> <span class="dn">暴挫约7%</span>，跌幅尤其显著</li>
+<li><b>日股</b> <span class="dn">大幅下跌</span>；节目将跌势与半导体板块调整及市场避险情绪升温联系起来</li>
+<li><b>联动逻辑</b>：半导体调整 + 避险情绪 → 亚太股市同日受压，美股科技股亦承压</li>
+</ul>
+</div></section>
+
+<!-- 6 AI/行业 -->
+<section class="slide"><div class="inner">
+<div class="kicker">05 · AI / 行业动态</div>
+<h2 class="stitle">AI基建融资：从订单转向资金</h2>
+<ul class="tight">
+<li><b>融资疑虑升温</b>：节目花较多篇幅讨论AI基础设施的融资问题——相关公司股价与债券价格同时受压，市场关注其资本开支与借贷成本</li>
+<li><b>正反对照</b>：一边是CRWV股债双杀引发的融资危机疑虑；另一边是Anthropic收入增45%且经调整转盈——AI的需求侧与供给侧融资压力正在分化</li>
+<li><b>半导体</b>：ASML上调展望是正面信号，但在大市拖累下，半导体股整体仍未摆脱调整</li>
+</ul>
+</div></section>
+
+<!-- 7 52周高低 -->
+<section class="slide"><div class="inner">
+<div class="kicker">06 · 52周高低股</div>
+<h2 class="stitle">本期52周高低名单</h2>
+<table class="mini">
+<tr><td><b>石油股</b><br><span style="color:#64748b;font-size:13px;">创新高主力板块</span></td><td style="text-align:right"><span class="tag up">52周高</span></td></tr>
+<tr><td><b>Visa（V）</b><br><span style="color:#64748b;font-size:13px;">个别大型股创新高</span></td><td style="text-align:right"><span class="tag up">52周高</span></td></tr>
+<tr><td><b>GME</b><br><span style="color:#64748b;font-size:13px;">个别股份创新高</span></td><td style="text-align:right"><span class="tag up">52周高</span></td></tr>
+<tr><td><b>个别弱势股</b><br><span style="color:#64748b;font-size:13px;">创新低，节目仅快速扫描，未深入分析</span></td><td style="text-align:right"><span class="tag dn">52周低</span></td></tr>
+</table>
+<p class="lead" style="margin-top:10px;font-size:14px;color:#94a3b8;">节目尾段快速提及本期52周高低名单，未逐只深入分析；创新高以石油股及个别大型股为主。</p>
+</div></section>
+
+<!-- 8 交易含义 -->
+<section class="slide"><div class="inner">
+<div class="kicker">07 · 💡交易含义</div>
+<h2 class="stitle">仓位语言解读</h2>
+<div class="vs">
+<div class="bull"><h5>▲ 资金流向信号</h5>
+<ul style="padding-left:16px;line-height:1.7;">
+<li>避险资产得宠：美元走强、金价上升、波动指标上升——资金在通胀与加息押注重燃时先求避险，而非追逐反弹</li>
+<li>业绩兑现受奖：UNH 靠业绩/指引改善逆势升约5%，Anthropic 收入增45%且经调整转盈——市场奖励的是已兑现的数字，而非故事</li>
+<li>石油股与 Visa、GME 创新高：在大市回落时仍创新高的板块与个股，是资金仍在场内寻找落脚点的痕迹</li>
+</ul>
+</div>
+<div class="bear"><h5>▼ 风险提示</h5>
+<ul style="padding-left:16px;line-height:1.7;">
+<li>AI 基建的脆弱点在融资端：CRWV 股债双杀说明市场已开始用债券价格给 AI 基建股的融资能力定价——借贷成本与资本开支的可持续性，正在成为新的估值锚</li>
+<li>通胀 + 加息押注 + 高估值三重压力叠加：主持人提醒控制仓位风险，而非追逐短期反弹</li>
+<li>半导体仍在调整：ASML 上调展望也未能带动板块摆脱大市拖累——单个利好在系统性避险面前先当作个股事件，而非板块反转信号</li>
+</ul>
+</div>
+</div>
+<p class="lead" style="margin-top:10px;font-size:14.5px;">可复用框架：<b>股债双杀检验框架</b>——当一只高资本开支股的股与债同时受压，问题已从“增长预期”升级为“融资可持续性”，先看债券与借贷成本，再看股价；<b>兑现分化框架</b>——同一条 AI 叙事里，已兑现收入与利润的（Anthropic）与仍在靠融资扩张的（CRWV）会走向分化，仓位应跟着兑现程度走，而不是跟着叙事走。</p>
+</div></section>
+
+<!-- 9 来源 -->
+<section class="slide"><div class="inner">
+<div class="kicker">08 · 来源</div>
+<h2 class="stitle">本期影片</h2>
+<div class="card">
+<h4>韓股暴挫7%｜CPI升3.7% 重燃加息押注｜CRWV股債雙殺 AI基建股爆發融資危機疑慮｜Anthropic Q3 收入增45%｜ASML上調展望（15/10/2026)</h4>
+<p style="font-size:14px;color:#94a3b8;">2026年10月15日上传 ｜ 回顾昨晚10月14日美股</p>
+<p style="font-size:14px;margin-top:8px;"><a href="https://www.youtube.com/watch?v=o4eNJz8hTxw" style="color:#d4a94e;">https://www.youtube.com/watch?v=o4eNJz8hTxw</a></p>
+</div>
+<div class="foot">本简报仅为信息整理，不构成投资建议。数字引自粤语自动字幕，存在语音识别误差，可疑处已标注。</div>
+</div></section>
+
+</div></div>
+
+<div id="fsbtn" title="全屏">⛶</div>
+<div id="fshint">WhatsApp 内无法全屏，请点分享 → 在 Safari 中打开</div>
+<div id="counter">1 / 9</div>
+<div class="arrow" id="prev">‹</div>
+<div class="arrow" id="next">›</div>
+<div id="dots"></div>
+
+<script>
+(function(){
+var track = document.getElementById('track');
+var slides = track.children.length;
+var idx = 0, dots = document.getElementById('dots'), counter = document.getElementById('counter');
+for (var i=0;i<slides;i++){ (function(n){ var s=document.createElement('span'); s.onclick=function(){go(n);}; dots.appendChild(s);})(i);}
+function go(n){
+idx = Math.max(0, Math.min(slides-1, n));
+track.style.transform = 'translateX(-' + (idx*100) + '%)';
+var ds = dots.children;
+for (var i=0;i<ds.length;i++) ds[i].className = i===idx? 'on': '';
+counter.textContent = (idx+1) + ' / ' + slides;
+}
+document.getElementById('prev').onclick = function(){ go(idx-1);};
+document.getElementById('next').onclick = function(){ go(idx+1);};
+document.addEventListener('keydown', function(e){
+if (e.key==='ArrowRight'||e.key===' ') go(idx+1);
+if (e.key==='ArrowLeft') go(idx-1);
+});
+var sx=0, dx=0, dragging=false;
+var deck = document.getElementById('deck');
+deck.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; dx=0; dragging=true;}, {passive:true});
+deck.addEventListener('touchmove', function(e){ if(dragging) dx=e.touches[0].clientX-sx;}, {passive:true});
+deck.addEventListener('touchend', function(e){
+dragging=false;
+if (Math.abs(dx)>60){ go(idx + (dx<0?1:-1));}
+});
+var msx=0, mdx=0, mdown=false;
+deck.addEventListener('mousedown', function(e){ mdown=true; msx=e.clientX; mdx=0;});
+deck.addEventListener('mousemove', function(e){ if(mdown) mdx=e.clientX-msx;});
+deck.addEventListener('mouseup', function(){ if(mdown&&Math.abs(mdx)>80) go(idx+(mdx<0?1:-1)); mdown=false;});
+var fs = document.getElementById('fsbtn');
+function showHint(){
+var h = document.getElementById('fshint');
+h.style.display = 'block';
+clearTimeout(h._t);
+h._t = setTimeout(function(){ h.style.display = 'none';}, 3500);
+}
+fs.onclick = function(){
+try {
+if (document.fullscreenElement || document.webkitFullscreenElement) {
+var p = (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+if (p && p.catch) p.catch(showHint);
+} else {
+var el = document.documentElement;
+var req = el.requestFullscreen || el.webkitRequestFullscreen;
+if (!req) { showHint(); return;}
+var r = req.call(el);
+if (r && r.catch) r.catch(showHint);
+}
+} catch(e) { showHint();}
+};
+go(0);
+})();
+</script>
+</body>
+</html>

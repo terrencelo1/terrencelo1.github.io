@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<!--
+  通用橫向滑動簡報模板（參照 SA_brief_2026-10-10_slides.html，用戶已確認喜歡此交互）。
+  給 cron worker 的使用說明：
+  1. 把 id="track" 的 div 裡的 section.slide 全部替換為本期內容，每節一屏。
+     （注意：註釋裡不要出現 <div id="track"> 的字面寫法，否則按字面正則替換時會從註釋處誤匹配、吃掉 head。）
+  2. 第一屏必須是封面（class="slide cover"）：kicker 寫任務名、h1 寫日期+期名、lead 寫一句話主線。
+  3. 語言：優質股日報用繁體中文；InvesTalk 總結、週末覆盤用簡體中文。按任務要求來。
+  4. 漲跌顏色：漲用 class="up"（綠 #4ade80），跌用 class="dn"（紅 #f87171），輪動中（ROTATING）用 class="rot" / 標籤 class="tag rot"（黃 #facc15），不要用紫色。
+     板塊輪動任務的 ROTATE 方向標註：相對上一次 STATE，bearish→rotating 標"rotate up ↑"，bullish→rotating 標"rotate down ↓"（黃色）。
+  5. 下面的 CSS/JS 不要改（滑動、圓點、箭頭、計數器、觸屏/鼠標拖拽已調好）。
+  6. 每屏內容控制在手機一屏能滑完的長度；超長內容拆成兩屏。
+  7. 文末固定聲明按各任務要求放（"本簡報僅為信息整理，不構成投資建議。"等）。
+  可用的內容塊 pattern（複製使用）：
+    - 標題屏：<div class="kicker">序號 · 分節名</div><h2 class="stitle">大標題</h2><p class="lead">導語</p>
+    - 數字磁貼：<div class="grid"><div class="tile"><div class="v up">數值</div><div class="l">標籤</div></div>…</div>
+    - 卡片：<div class="card"><h4>小標題</h4><p>正文</p></div>
+    - 緊湊列表：<ul class="tight"><li>…</li></ul>
+    - 迷你表格：<table class="mini"><tr><td>左</td><td style="text-align:right"><span class="tag up">標籤</span></td></tr></table>
+    - 多空對讀：<div class="vs"><div class="bull"><h5>▲ 看多</h5>…</div><div class="bear"><h5>▼ 看空</h5>…</div></div>
+    - 標籤：<span class="tag up|dn|mid|rot">文字</span>（rot=黃色，用於 ROTATING）
+    - 頁腳：<div class="foot">…</div>
+-->
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>早盤全覽 2026-10-15</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; overflow:hidden; }
+  body { font-family:-apple-system,'PingFang SC','PingFang TC','Microsoft YaHei','Microsoft JhengHei','Segoe UI',Arial,sans-serif; background:#0b1220; color:#e2e8f0; }
+  #deck { position:fixed; inset:0; overflow:hidden; }
+  #track { display:flex; height:100%; transition:transform .38s cubic-bezier(.32,.72,.35,1); }
+  .slide { flex:0 0 100%; height:100%; overflow-y:auto; padding:calc(56px + env(safe-area-inset-top)) 22px calc(84px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; justify-content:flex-start; }
+  .inner { max-width:680px; width:100%; margin:0 auto; }
+  .kicker { font-size:14px; letter-spacing:2px; color:#d4a94e; font-weight:700; margin-bottom:10px; }
+  h2.stitle { font-size:30px; font-weight:800; color:#fff; margin-bottom:14px; line-height:1.35; }
+  .lead { font-size:17px; line-height:1.75; color:#cbd5e1; }
+  .lead b { color:#fff; }
+  .up { color:#4ade80; font-weight:700; } .dn { color:#f87171; font-weight:700; }
+  .rot { color:#facc15; font-weight:700; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:6px; }
+  .tile { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:12px 14px; }
+  .tile .v { font-size:23px; font-weight:800; }
+  .tile .l { font-size:13px; color:#94a3b8; margin-top:3px; }
+  .card { background:#131c31; border:1px solid #22304d; border-radius:12px; padding:14px; margin-bottom:12px; font-size:16px; line-height:1.7; }
+  .card h4 { font-size:17px; margin-bottom:8px; }
+  .vs { display:grid; grid-template-columns:1fr; gap:10px; }
+  .bear { background:#2a1420; border:1px solid #7f2d3a; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65; }
+  .bull { background:#0f2a1c; border:1px solid #2f7a4d; border-radius:10px; padding:11px; font-size:14.5px; line-height:1.65; }
+  .bear h5 { color:#f87171; font-size:15px; margin-bottom:6px; }
+  .bull h5 { color:#4ade80; font-size:15px; margin-bottom:6px; }
+  ul.tight { padding-left:18px; font-size:15.5px; line-height:1.8; color:#cbd5e1; }
+  ul.tight li { margin-bottom:4px; }
+  .tag { display:inline-block; border-radius:20px; padding:1px 9px; font-size:12.5px; font-weight:700; }
+  .tag.up { background:rgba(74,222,128,.15); color:#4ade80; } .tag.dn { background:rgba(248,113,113,.15); color:#f87171; }
+  .tag.rot { background:rgba(250,204,21,.15); color:#facc15; }
+  .tag.mid { background:rgba(148,163,184,.15); color:#94a3b8; }
+  table.mini { width:100%; border-collapse:collapse; font-size:14px; }
+  table.mini td { padding:8px 4px; border-bottom:1px solid #1e2a44; vertical-align:top; line-height:1.55; }
+  .foot { font-size:13px; color:#64748b; text-align:center; margin-top:18px; }
+  /* cover */
+  .cover { justify-content:flex-start; }
+  .cover .inner { padding-top:7vh; }
+  .cover h1 { font-size:36px; font-weight:800; color:#fff; line-height:1.4; margin:10px 0 16px; }
+  .cover .date { font-size:13px; color:#94a3b8; }
+  /* nav */
+  #dots { position:fixed; bottom:calc(22px + env(safe-area-inset-bottom)); left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:10; }
+  #dots span { width:8px; height:8px; border-radius:50%; background:#334155; transition:all .25s; cursor:pointer; }
+  #dots span.on { background:#d4a94e; width:24px; border-radius:4px; }
+  .arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:10; width:40px; height:40px; border-radius:50%;
+           background:rgba(212,169,78,.12); border:1px solid rgba(212,169,78,.35); color:#d4a94e; font-size:18px;
+           display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; }
+  #prev { left:calc(8px + env(safe-area-inset-left)); } #next { right:calc(8px + env(safe-area-inset-right)); }
+  .arrow:active { background:rgba(212,169,78,.3); }
+  #counter { position:fixed; top:calc(16px + env(safe-area-inset-top)); right:calc(18px + env(safe-area-inset-right)); font-size:12px; color:#64748b; z-index:10; }
+  #fsbtn { position:fixed; right:calc(16px + env(safe-area-inset-right)); bottom:calc(60px + env(safe-area-inset-bottom)); z-index:10; width:40px; height:40px; border-radius:50%;
+           background:rgba(212,169,78,.15); border:1px solid rgba(212,169,78,.45); color:#d4a94e; font-size:18px;
+           display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; }
+  #fsbtn:active { background:rgba(212,169,78,.35); }
+  #fshint { position:fixed; left:50%; bottom:calc(110px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:30;
+           background:rgba(15,23,42,.95); border:1px solid #334155; color:#e2e8f0; font-size:14px; line-height:1.6;
+           padding:10px 16px; border-radius:10px; display:none; max-width:88vw; text-align:center; }
+  @media (max-width:480px){ h2.stitle{font-size:26px;} .cover h1{font-size:31px;} .arrow{display:none;} }
+  /* 平板/桌面：箭头可见时正文左右留出 64px，避免文字跑到箭头下面；内容列随屏宽放大，填满 iPad 全屏 */
+  @media (min-width:481px){ .slide{padding:calc(56px + env(safe-area-inset-top)) 64px calc(84px + env(safe-area-inset-bottom));} }
+  @media (min-width:768px){ .inner{max-width:860px;} h2.stitle{font-size:34px;} .cover h1{font-size:44px;} .lead{font-size:19px;} ul.tight{font-size:17px;} .card{font-size:17px;} .tile .v{font-size:26px;} table.mini{font-size:15px;} }
+  @media (min-width:1100px){ .inner{max-width:1000px;} h2.stitle{font-size:36px;} .cover h1{font-size:48px;} .lead{font-size:20px;} }
+  /* 打印 / 转 PDF（WhatsApp 里 PDF 查看器可真全屏）：每屏一页，长屏自然跨页，不断内容 */
+  @page { size: A4; margin: 0; }
+  @media print {
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    html, body { height:auto; overflow:visible; background:#0b1220; }
+    #deck { position:static; overflow:visible; height:auto; }
+    #track { display:block; height:auto; transform:none !important; }
+    .slide { flex:none; width:100%; height:auto; min-height:0; overflow:visible; padding:20px 22px; page-break-after:always; }
+    .slide:last-child { page-break-after:auto; }
+    #dots, .arrow, #counter, #fsbtn, #fshint { display:none !important; }
+    .cover .inner { padding-top:0; }
+  }
+</style>
+</head>
+<body>
+<div id="deck"><div id="track">
+<section class="slide cover"><div class="inner">
+    <div class="kicker">早盤全覽 · SLIDES</div>
+    <h1>2026-10-15<br><span style="color:#d4a94e;">早盤全覽</span></h1>
+    <p class="lead">一句話總結：熱 CPI＋Gartner 警告引爆 AI 債務重估，278 隻 <span class="dn">104 隻大跌、僅 1 隻大漲</span>；今日 <span style="color:#f2c14e;">8:30am PPI</span> 是關鍵。</p>
+    <div class="date" style="margin-top:14px;">數據口徑：美東 10-14 收盤 + 當日盤前/亞太早盤 · 海報時間為美東時間 · 左右滑動瀏覽 →</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">01 · 市場與宏觀</div>
+    <h2 class="stitle">指數跌幅溫和，殺的是結構</h2>
+    <div class="grid">
+      <div class="tile"><div class="v dn">-1.08%</div><div class="l">SPY $769.60</div></div>
+      <div class="tile"><div class="v dn">-1.97%</div><div class="l">QQQ $728.95</div></div>
+      <div class="tile"><div class="v dn">-0.09%</div><div class="l">道指 51,621.48</div></div>
+      <div class="tile"><div class="v dn">-1.11%</div><div class="l">S&amp;P 500 7,718.94</div></div>
+      <div class="tile"><div class="v dn">-1.88%</div><div class="l">Nasdaq 26,692.87</div></div>
+      <div class="tile"><div class="v up">+10.48%</div><div class="l">VIX 16.87</div></div>
+      <div class="tile"><div class="v">5.19%</div><div class="l">10 年美債殖利率</div></div>
+      <div class="tile"><div class="v dn">-0.12%</div><div class="l">黃金 $4,172.2</div></div>
+      <div class="tile"><div class="v dn">-0.34%</div><div class="l">WTI 原油 $93.82</div></div>
+      <div class="tile"><div class="v dn">-0.63%</div><div class="l">比特幣 ~$81,105</div></div>
+    </div>
+    <ul class="tight" style="margin-top:12px;">
+      <li>S&amp;P 500 終結連續 53 個交易日無 1% 跌幅的紀錄（2020 年 1 月以來最長）；羅素 2000 自 8 月高點回落逾 10%，進入技術性修正。</li>
+      <li>費城半導體指數 -4.3%，六連跌；道指盤中收復 260 點跌幅；Apple +0.5%，市值首度收於 5 兆美元上方。</li>
+      <li>SA 首頁期貨盤：Nasdaq 期貨 -1.05%、S&amp;P 期貨 -0.45%、道指期貨 -0.11%、黃金 +1.26%。</li>
+    </ul>
+    <div class="foot">行情來源：yfinance 實際拉取（10-14 收盤）· SA 首頁未登入瀏覽</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">02 · 當日主線</div>
+    <h2 class="stitle">通膨熱＋Gartner 警告，AI 債務被重新定價</h2>
+    <ul class="tight">
+      <li><b>超預期 9 月 CPI</b>：汽油帶動通膨加速、壓力擴散至能源之外；利率期貨押注本月 Fed 升息的機率由 22% 升至 37%（CME FedWatch）。</li>
+      <li><b>Gartner 警告</b>：AI 基建支出與實際回報差距擴大，逾 3.5 兆美元支出面臨減值風險；預測到 2030 年逾 80% 獨立 neocloud 將結束獨立營運。</li>
+      <li><b>CoreWeave 債券恐慌</b>：2032 年到期 9.625% 票據價格由月初 $85 跌至 $79.50，殖利率升至約 15%；CEO 內部備忘稱市場「非理性」。</li>
+      <li><b>Barclays 降評</b>：DELL 由 Overweight 降至 Equal Weight（目標價 $603→$574），HPE 與 NetApp 同降至 Hold。</li>
+      <li><b>Beige Book</b>：就業市場低招聘、低解僱；多地通膨升溫，企業展望偏向輕微增長。</li>
+      <li><b>其他</b>：8 個州起訴 OpenAI，指 ChatGPT 對兒童造成傷害；紐約聯儲 10/15–11/13 再投資買入約 $14.6B。</li>
+    </ul>
+    <div class="foot">來源：Reuters、Straits Times、Barron's、MarketWatch、CNBC TV18</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">📢 · 指數成分股調整</div>
+    <h2 class="stitle">近兩週公告：MRNA、TWLO 已生效</h2>
+    <ul class="tight">
+      <li><b>MRNA</b> 納入 Nasdaq-100，取代 WBD，<b>已於 10-09 開盤前生效</b>（278 隻名單內）。</li>
+      <li><b>TWLO</b> 納入 S&amp;P 500，<b>已於 10-06 生效</b>（278 隻名單內）；同批 VYLR 納入 S&amp;P 500（10-01 生效），CTVA 剔除。</li>
+      <li><b>未來 7 天內（10-16～10-22）生效的調整：無。</b></li>
+    </ul>
+    <div class="foot">來源：Nasdaq 公告（GlobeNewswire）、S&amp;P Dow Jones Indices 公告（PR Newswire）</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">📊 · 異動與原因分析（1）</div>
+    <h2 class="stitle">大跌 104 隻：AI 基建與半導體領跌</h2>
+    <table class="mini">
+      <tr><td>CRWV <span class="dn">-15.46%</span></td><td>Gartner 警告＋債券殖利率飆升</td></tr>
+      <tr><td>DOCN <span class="dn">-14.76%</span></td><td>科技拋售，觸及 200 日線</td></tr>
+      <tr><td>EROC <span class="dn">-14.10%</span></td><td>新股（上市以來）</td></tr>
+      <tr><td>SOXL <span class="dn">-13.35%</span></td><td>半導體 3 倍槓桿 ETF</td></tr>
+      <tr><td>WULF <span class="dn">-12.64%</span> · AGQ <span class="dn">-12.35%</span></td><td>挖礦／白銀槓桿股跟跌</td></tr>
+      <tr><td>CIFR <span class="dn">-12.35%</span> · IREN <span class="dn">-12.18%</span></td><td>neocloud／挖礦鏈同遭拋售</td></tr>
+      <tr><td>AAOI <span class="dn">-11.82%</span> · DELL <span class="dn">-11.27%</span></td><td>光通訊；Barclays 降評</td></tr>
+      <tr><td>U <span class="dn">-11.22%</span> · TTMI <span class="dn">-11.02%</span></td><td>高 Beta 成長股</td></tr>
+      <tr><td>NVTS <span class="dn">-10.48%</span> · ASTS <span class="dn">-10.46%</span></td><td>半導體／衛星股</td></tr>
+      <tr><td>HUT <span class="dn">-10.45%</span> · AEVA <span class="dn">-10.39%</span></td><td>挖礦／激光雷達</td></tr>
+      <tr><td>CIEN <span class="dn">-10.19%</span> · SMR <span class="dn">-10.17%</span></td><td>光通訊／核能</td></tr>
+      <tr><td>BAND <span class="dn">-10.11%</span> · NBIS <span class="dn">-10.08%</span></td><td>neocloud 鏈</td></tr>
+      <tr><td>ORCL <span class="dn">-8.83%</span> · MRVL <span class="dn">-8.73%</span></td><td>AI 基建債務擔憂／半導體</td></tr>
+      <tr><td>HOOD <span class="dn">-8.54%</span> · SMCI <span class="dn">-8.42%</span></td><td>券商／AI 伺服器</td></tr>
+      <tr><td>HPE <span class="dn">-8.28%</span> · SNOW <span class="dn">-6.34%</span></td><td>Barclays 降評／軟體</td></tr>
+    </table>
+    <div class="foot">跌幅 ≥5% 共 104 隻；其餘如 OUST、MARA、CRDO、CLS、IONQ、LUNR、FLEX、AFRM、APLD、RIOT、LITE、COHR、BE 等跌幅 9–10% 區間</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">📊 · 異動與原因分析（2）</div>
+    <h2 class="stitle">逆勢股：避險與防禦接棒</h2>
+    <ul class="tight">
+      <li><span class="up">SOXS +13.63%</span>——半導體 3 倍反向 ETF，唯一大漲股，對沖需求湧現。</li>
+      <li><span class="up">COST +2.87%</span>、<span class="up">WMT +3.46%</span>——20 日新高，必需消費避險。</li>
+      <li><span class="up">UNH +4.73%</span>、<span class="up">LLY +3.62%</span>、<span class="up">MRK +3.8%</span>——醫療防禦領漲；LLY 站上 50 日線，口服 GLP-1 數據向好。</li>
+      <li><span class="up">GFS +4.8%</span>、<span class="up">LMT +3.61%</span>、<span class="up">MRK +3.8%</span>——上穿 20 日線；GFS 同時上穿 50 日線。</li>
+      <li><span class="up">PBR +1.73%</span>——唯一 52 週新高；52 週新低 0 隻。</li>
+      <li>20 日新低 3 隻：DRAM（上市以來）、FLY、MU。</li>
+    </ul>
+    <div class="foot">數據：price_scan.py 掃描 278/278 隻，失敗 0 隻</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">📈 · 技術面分析</div>
+    <h2 class="stitle">廣度惡化，SPY 貼緊 20／50 日線交匯處</h2>
+    <div class="grid">
+      <div class="tile"><div class="v">46.0%</div><div class="l">站上 200 日線比例</div></div>
+      <div class="tile"><div class="v dn">40 / 9</div><div class="l">跌破／上穿 20 日線</div></div>
+      <div class="tile"><div class="v dn">41 / 5</div><div class="l">跌破／上穿 50 日線</div></div>
+      <div class="tile"><div class="v">7 隻</div><div class="l">觸及 200 日線</div></div>
+    </div>
+    <ul class="tight" style="margin-top:12px;">
+      <li>跌破 20 日線：NVDA、ORCL、DELL、TSLA、CRWD、PANW、SNOW 等 40 隻；跌破 50 日線：NVDA、AMZN、TSM、QCOM、HOOD、SMCI 等 41 隻。</li>
+      <li>觸及 200 日線：AEHR、CRDO、DASH、DOCN、OUST、VSAT、NTR——多為本輪重跌後回測長期均線。</li>
+      <li>SPY 收於 20 日線下方 0.1%、50 日線上方 0.3%，200 日線上方 6.7%——短期均線帶成為首個攻防區。</li>
+      <li>廣度警訊（Market Scholars）：僅 35.2% 的 S&amp;P 500 成分股仍在 50 日線上方，NYSE 新低達 327 家。</li>
+      <li>上市不足 200 天（200 日線 N/A）：CBRS、DRAM、PS、SIVEF、SPCX、EROC——「52 週」實為上市以來高低。</li>
+    </ul>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">📅 · 財報預告</div>
+    <h2 class="stitle">今日 TSM 最關鍵；明日名單內無財報</h2>
+    <ul class="tight">
+      <li><b>美東 10-15（週四）名單內 3 隻：</b></li>
+      <li>TSM 台積電（盤前，EPS 預期約 $4.4–4.5）——AI 晶片風向球；Q3 營收已公布約 $46.7B、年增約 50%，關注 Q4 指引、毛利率與 2027 展望。財報前後波動風險高。</li>
+      <li>AA 美國鋁業（盤後，EPS 預期 $1.50）、IBKR 盈透證券（盤後，EPS 預期約 $0.70）——財報前後波動風險提示。</li>
+      <li><b>美東 10-16（週五）：</b>MTB、TRV、TFC、RF、CFG——皆不在 278 隻名單內，未來 2 天名單內僅今日 3 隻。</li>
+      <li><b>下波重點：</b>10-20 NFLX、10-21 TSLA（TSLA 在名單內）。</li>
+    </ul>
+    <div class="foot">來源：earnings_calendar JSON（覆蓋至 2026-11-13）＋網上財報日曆交叉核對；EPS 預期各來源略有差異</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">🗓 · 財經日曆（美東 10-15 週四）</div>
+    <h2 class="stitle">8:30am PPI＋零售＋初請，三連發</h2>
+    <ul class="tight">
+      <li><b>8:30am</b> PPI 最終需求（9 月，月增預期 +0.6%，前值 +0.4%）；核心 PPI 預期 +0.3%，年增預期 +5.5%。</li>
+      <li><b>8:30am</b> 零售銷售（9 月，月增預期 +0.4%，前值 +1.2%）；不含汽車預期 +0.5%。</li>
+      <li><b>8:30am</b> 初請失業金（預期 20.0 萬，前值 19.7 萬）；紐約聯儲 Empire State（預期 10.3，前值 7.6）；費城聯儲製造業（預期 32.0，前值 37.8）。</li>
+      <li><b>10:00am</b> 商業庫存（8 月，預期 +0.4%）；<b>10:30am</b> EIA 天然氣庫存；<b>12:00pm</b> EIA 石油庫存。</li>
+      <li><b>11:00am</b> 國庫券＋5 年期 TIPS 發行公告；<b>11:30am</b> 4 週／8 週國庫券拍賣。</li>
+      <li><b>4:30pm</b> Fed 資產負債表；克里夫蘭聯儲 Hammack 講話；<b>11:30pm</b> Fed 官員講話。</li>
+      <li>背景：Fed 靜默期自 10-17（週六）開始，本週為靜默期前最後講話窗口；FOMC 會議 10-27～10-28。</li>
+    </ul>
+    <div class="foot">海報另附圖片版 · 預期值以 WSJ 調查為主（部分來源 PPI 月增 +0.5%、費城聯儲 26.5，口徑略異）</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">🎙 · 五人觀點（1/2）</div>
+    <h2 class="stitle">陳鎮強：大市看淡，個別撈底</h2>
+    <p class="lead">發表日期：2026-10-13 · 出處：InvesTalk YouTube《開市 Talk》（嘉賓陳鎮強，主持范巧茹）· <span class="tag dn">大市看空／個別撈底看多</span></p>
+    <ul class="tight" style="margin-top:10px;">
+      <li>大市維持看淡，恒指繼續下望 23,000 點，短線未見轉勢訊號。</li>
+      <li>判斷債息趨於見頂，利率壓力邊際緩和，是其敢於談撈底的前提條件。</li>
+      <li>偏空大市下仍點名撈底之選：長鑫、三花、藍思、聯想——半導體／光學／消費電子鏈的選擇性佈局，而非全面看多。</li>
+      <li>節目另覆蓋美光（MU）、AMD、Lumentum（LITE）、Tesla、SPCX 等美股與相關鏈條，撈底思路同時參照美股科技鏈表現。</li>
+      <li>整體框架：「大市向下、個別強鏈逢低撈」——不追大市，只做結構性選股。</li>
+    </ul>
+    <div class="foot">本段據節目標題與分段標註歸納，未取得逐字 transcript，故無逐字引文</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">🎙 · 五人觀點（2/2）</div>
+    <h2 class="stitle">其餘四人：今日無新公開觀點</h2>
+    <ul class="tight">
+      <li><b>黃國英（英sir）</b>——今日無新公開觀點。最近已知立場（一句，約 9 月下旬）：2026 Q4 部署聚焦 AI、金融、生物科技、標誌性資產四大板塊。</li>
+      <li><b>蔡金强（Oscar／小金人）</b>——今日無新公開市場觀點。其 10-12《明報》專欄為歷史人物散文，無市場／投資觀點。最近已知市場立場（一句，2026-08-03）：AI 敘事已轉向「輪到 CSP 收租」。</li>
+      <li><b>洪灝</b>——今日無新公開觀點。最近已知立場（一句，2025-12-18）：美股 AI 估值已貴但談泡沫破滅為時過早。</li>
+      <li><b>溫杰（比比）</b>——今日無新公開觀點。最近已知立場（一句，約 2026-08-10）：生科股不宜高追，落後股可耐心等。</li>
+    </ul>
+    <div class="foot">時效鐵律：超 3 天的觀點不作為「最新」收錄；以上僅一句最近已知立場＋日期</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">💬 · KOL 觀點精選（1/3）</div>
+    <h2 class="stitle">AI 債務：空方火力集中在融資端</h2>
+    <ul class="tight">
+      <li><b>Gartner（Will Sommer）</b> <span class="tag dn">看空 neocloud</span>——2026 年 AI 基建支出近 1 兆美元、2027–2030 年再投 6 兆，但累計 AI 收入僅約 3.6 兆美元；2030 年逾 80% 獨立 neocloud 將結束獨立營運。來源：Stocktwits，10-14。</li>
+      <li><b>D.A. Davidson（Gil Luria）</b> <span class="tag dn">看空 CRWV</span>——CRWV 借貸成本約 9%，投資回報僅約 1%，即使達目標 4%–5% 仍低於融資成本；仍看多 AI 需求本身。來源：TradingKey 轉述，10-14。</li>
+      <li><b>Bokeh Capital（Kim Forrest，CIO）</b> <span class="tag dn">謹慎</span>——投資人正質疑 AI 基建能否產生預期回報；熱 CPI 推升升息預期，直接墊高借債建資料中心的成本。來源：Reuters，10-14。</li>
+      <li><b>Barclays</b> <span class="tag dn">看空 DELL、HPE</span>——DELL 由 Overweight 降至 Equal Weight（目標價 $603→$574），2026 年股價已漲逾 300%、估值偏高；HPE、NetApp 同降至 Hold。來源：TradingKey／Cryptopolitan 轉述，10-14。</li>
+      <li><b>Barron's</b> <span class="tag dn">看空 CRWV</span>——債券遭拋售是股價 -15.46% 的直接觸發點；2032 年票據殖利率升至約 15.06%；股價收 $65.78，為 7 月 29 日以來最低，10 月至今跌 24%。來源：Barron's，10-14。</li>
+    </ul>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">💬 · KOL 觀點精選（2/3）</div>
+    <h2 class="stitle">分化：避險、逢低買入與防禦輪動</h2>
+    <ul class="tight">
+      <li><b>Barron's</b> <span class="tag dn">看空 AI 工業鏈</span>——CRWV 債券恐慌擴散：GE Vernova -8%、Vertiv -6.8%、Eaton -5%；CRWV 2026 年自由現金流預期 -$270 億。來源：Barron's，10-14。</li>
+      <li><b>Dan Ives（Yorkville Ives &amp; Co.）</b> <span class="tag up">看多 AI</span>——本輪拋售是買入機會，算力需求遠超供給格局未變；但提醒年底前還會有更多「gut-check 時刻」。來源：MarketWatch，10-14。</li>
+      <li><b>Jefferies 交易檯（Jeffrey Favuzza）</b> <span class="tag mid">中性偏空半導體</span>——CRWV 單日看跌期權量創歷史新高；資金由半導體輪動至巨型科技股，Mag 7 等權重 ETF 已連續 8 天跑贏 SOXX。來源：MarketWatch 轉述，10-14。</li>
+      <li><b>Barron's</b> <span class="tag up">看多醫療防禦</span>——熱 CPI 引發 risk-off，資金回流醫療：UNH +4.7% 為當日 S&amp;P 500 最大漲幅股；LLY +3.6%、AbbVie +3.3% 創收盤新高。來源：Barron's，10-14。</li>
+      <li><b>Wells Fargo</b> <span class="tag mid">中性 HOOD</span>——財報前目標價 $125→$120，維持 Equal Weight。來源：Stocktwits，10-14。</li>
+      <li><b>Market Scholars（YouTube）</b> <span class="tag dn">看空廣度</span>——僅 35.2% 的 S&amp;P 500 成分股仍在 50 日線上方，NYSE 新低 327 家；修復需半導體、銀行與等權重指數同步企穩。來源：10-14。</li>
+      <li><b>Verified Investing（YouTube）</b> <span class="tag dn">謹慎</span>——跌勢不只是一份通膨報告，而是高借貸成本、巨額 AI 資本支出與轉弱技術結構的合力；需看反彈能否收復阻力。來源：10-14。</li>
+    </ul>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">💬 · KOL 觀點精選（3/3）</div>
+    <h2 class="stitle">散戶與點名 KOL：逢低買入 vs 形態警示</h2>
+    <ul class="tight">
+      <li><b>Stocktwits 散戶投票</b> <span class="tag up">看多逢低買入</span>——約 4,000 票中 57% 計劃逢低買入 NBIS、CRWV、IREN、APLD；CRWV 情緒由中性轉看多。來源：Stocktwits，10-14。</li>
+      <li><b>Timothy Sykes</b> <span class="tag up">看多 LLY</span>——口服 GLP-1 Foundayo Phase 3 心血管安全性不劣於胰島素，且 A1C、減重、腎臟保護更佳。來源：10-14。</li>
+      <li><b>trader goku（X @tradergoku，10-14）</b> <span class="tag dn">謹慎／看空形態</span>——$ASTS 跌破看跌旗形下沿後持續放量下跌，值得復盤的做空形態；做短線盡量不要追已連續上漲三天以上的股票；連續止損後切忌急於找下一筆交易。來源：X Posts 分頁逐條核對。</li>
+      <li><b>serenity（X @aleabitoreddit，10-13～14）</b> <span class="tag dn">看空記憶體／謹慎</span>——討論 Elon 近期批評記憶體的原因，提及 SKHY 與 Samsung 記憶體漲價過多；韓國市場與 SKHY／Samsung 大跌；另分享 $AGLT 經 $CCXI 上市時程（約 11 月 6 日 Nasdaq 上市）與 Physical AI＋人形機器人為 AI 下一階段。來源：X Posts 分頁逐條核對。</li>
+      <li><b>qullamaggie（X @Qullamaggie）</b>——Posts 分頁無更新（回覆未可驗證）。</li>
+      <li><b>Martin Luk（X @martinlukkt）</b>——Posts 分頁無更新，最新可見為 10-08 貼文（回覆未可驗證）。</li>
+    </ul>
+    <div class="foot">點名 KOL 均用即時瀏覽器直接打開 X 主頁 Posts 分頁逐條核對；未登入時 Replies 需登入，無法驗證</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">⚖ · 多空對讀</div>
+    <h2 class="stitle">三組對決：需求 vs 融資、通膨 vs 波動</h2>
+    <div class="vs">
+      <div class="bull"><h5>▲ 看多：AI 需求仍是真需求</h5>Dan Ives：算力需求遠超供給，大科技不會縮減支出；TSM Q3 營收年增約 50% 佐證需求；散戶 57% 計劃逢低買入 neocloud 四雄。</div>
+      <div class="bear"><h5>▼ 看空：融資成本正在殺死回報</h5>Gartner：逾 3.5 兆美元支出面臨減值；Luria：CRWV 以 9% 借錢賺 1% 回報；CRWV 債券殖利率 15%，現金流 2026 年預期 -$270 億。</div>
+    </div>
+    <div class="vs" style="margin-top:10px;">
+      <div class="bull"><h5>▲ 看多：CPI 只是波動，不是趨勢</h5>道指收復 260 點跌幅；黃金期貨夜盤 +1.26%、長債受避險買盤；NY Fed 10/15–11/13 再投資買入 $14.6B（既定操作，非新增刺激）。</div>
+      <div class="bear"><h5>▼ 看空：通膨再起＋升息重回桌面</h5>9 月 CPI 超預期、Beige Book 通膨升溫；FedWatch 本月升息機率 37%（前值 22%）；S&amp;P 終結 53 日無 1% 跌幅紀錄，廣度急速惡化。</div>
+    </div>
+    <div class="vs" style="margin-top:10px;">
+      <div class="bull"><h5>▲ 看多：防禦與必需消費接棒</h5>醫療（LLY/MRK/UNH）、COST/WMT 逆勢新高，顯示資金並未離場，只是換地方躲；52 週新低 0 隻。</div>
+      <div class="bear"><h5>▼ 看空：輪動是逃離，不是換手</h5>104 隻大跌、跌破 50 日線 41 隻；半導體六連跌、Mag 7 只是跌得少；Jefferies：CRWV 看跌期權量創歷史新高。</div>
+    </div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">🧠 · AI 資金三層分層點評</div>
+    <h2 class="stitle">市場按融資成本重估 Layer 2，不是需求證偽</h2>
+    <ul class="tight">
+      <li><b>Layer 1 需求／晶片層（NVDA -3.16%、AVGO -3.10%、TSM 財報前）</b>——跌幅相對溫和；TSM Q3 營收年增約 50% 仍是需求未死的證據。今日 TSM 財報與指引是驗證層。</li>
+      <li><b>Layer 2 基建／融資層（CRWV -15.46%、ORCL -8.83%、NBIS -10.08%、DELL -11.27%、HPE -8.28%、GEV -6.2%）</b>——重災區。共同特徵：借錢建算力，融資成本上升直接打回報模型；Gartner 報告是導火線，債券市場是放大器。</li>
+      <li><b>Layer 3 應用／變現層（META -3.27%、GOOG -1.68%、MSFT -1.80%、AMZN -1.74%）</b>——跌幅小於 Layer 2；未大舉借債建基建的大科技被當作避險標的，Mag 7 等權重連續 8 天跑贏 SOXX。</li>
+      <li><b>結論</b>：這是一次「誰借錢最多、誰跌最慘」的融資成本定價，而非 AI 需求證偽。Layer 2 的分化將持續：有合約積壓與投資級融資通道的活下來，純槓桿擴張的繼續被定價。</li>
+    </ul>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">💡 · 交易含義與風險</div>
+    <h2 class="stitle">倉位語言：最受傷的是槓桿，資金躲向防禦</h2>
+    <ul class="tight">
+      <li><b>哪類最受傷</b>：槓桿 AI 基建（neocloud、AI 伺服器、挖礦鏈）＋高 Beta 半導體——278 隻裡信號最集中的方向就是這裡，104 隻大跌、跌破 50 日線 41 隻。</li>
+      <li><b>資金往哪躲</b>：醫療（LLY/MRK/UNH）、必需消費（COST/WMT）、黃金、長債，以及相對低槓桿的大科技；反向 ETF（SOXS +13.63%）顯示對沖需求升溫。</li>
+      <li><b>可複用框架——融資成本定價</b>：CPI 熱＋殖利率上行時，AI 交易按「誰借錢最多」排序殺跌，而不是按「誰需求最差」。判斷一次拋售是錯殺還是重估，看三個錶：CRWV 債券殖利率（壓力錶）、TSM 指引（需求錶）、廣度修復（半導體＋銀行＋等權重同步企穩）。</li>
+      <li><b>風險</b>：今日 8:30am PPI 若再超預期，升息押注與 Layer 2 拋售可能加劇；TSM 指引若低於預期，Layer 1 也會被拖入重估。僅做盤面解讀，不給具體買賣指令。</li>
+    </ul>
+    <div class="foot">本匯總僅為信息整理，不構成投資建議。</div>
+  </div></section>
+
+  <section class="slide"><div class="inner">
+    <div class="kicker">🔗 · 來源連結</div>
+    <h2 class="stitle">主要來源</h2>
+    <ul class="tight">
+      <li>Reuters：AI 基建股重挫與升息押注 — reuters.com/business/ai-infrastructure-firms-slump-us-rate-hike-bets-rise-2026-10-14/</li>
+      <li>Barron's：CoreWeave 債券與股價、AI 工業鏈、醫療防禦 — barrons.com</li>
+      <li>MarketWatch：AI 交易分化 — marketwatch.com（10-14）</li>
+      <li>Straits Times／CNA／CNBC TV18：10-14 收盤報導</li>
+      <li>Seeking Alpha 首頁（未登入瀏覽，10-15）</li>
+      <li>Nasdaq 公告：MRNA 納入 Nasdaq-100（GlobeNewswire）；S&amp;P DJI 公告（PR Newswire）</li>
+      <li>InvesTalk《開市 Talk》10-13（陳鎮強）；X：@tradergoku、@aleabitoreddit、@Qullamaggie、@martinlukkt</li>
+      <li>行情：yfinance（10-14 收盤）＋ price_scan.py 掃描 278 隻；財報：earnings_calendar JSON</li>
+    </ul>
+    <div class="foot">本匯總僅為信息整理，不構成投資建議。</div>
+  </div></section>
+
+
+
+</div></div>
+
+<div id="fsbtn" title="全屏">⛶</div>
+<div id="fshint">WhatsApp 内无法全屏，请点分享 → 在 Safari 中打开</div>
+<div id="counter">1 / 3</div>
+<div class="arrow" id="prev">‹</div>
+<div class="arrow" id="next">›</div>
+<div id="dots"></div>
+
+<script>
+(function(){
+  var track = document.getElementById('track');
+  var slides = track.children.length;
+  var idx = 0, dots = document.getElementById('dots'), counter = document.getElementById('counter');
+  for (var i=0;i<slides;i++){ (function(n){ var s=document.createElement('span'); s.onclick=function(){go(n);}; dots.appendChild(s); })(i); }
+  function go(n){
+    idx = Math.max(0, Math.min(slides-1, n));
+    track.style.transform = 'translateX(-' + (idx*100) + '%)';
+    var ds = dots.children;
+    for (var i=0;i<ds.length;i++) ds[i].className = i===idx ? 'on' : '';
+    counter.textContent = (idx+1) + ' / ' + slides;
+  }
+  document.getElementById('prev').onclick = function(){ go(idx-1); };
+  document.getElementById('next').onclick = function(){ go(idx+1); };
+  document.addEventListener('keydown', function(e){
+    if (e.key==='ArrowRight'||e.key===' ') go(idx+1);
+    if (e.key==='ArrowLeft') go(idx-1);
+  });
+  var sx=0, dx=0, dragging=false;
+  var deck = document.getElementById('deck');
+  deck.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; dx=0; dragging=true; }, {passive:true});
+  deck.addEventListener('touchmove', function(e){ if(dragging) dx=e.touches[0].clientX-sx; }, {passive:true});
+  deck.addEventListener('touchend', function(e){
+    dragging=false;
+    if (Math.abs(dx)>60){ go(idx + (dx<0?1:-1)); }
+  });
+  var msx=0, mdx=0, mdown=false;
+  deck.addEventListener('mousedown', function(e){ mdown=true; msx=e.clientX; mdx=0; });
+  deck.addEventListener('mousemove', function(e){ if(mdown) mdx=e.clientX-msx; });
+  deck.addEventListener('mouseup', function(){ if(mdown&&Math.abs(mdx)>80) go(idx+(mdx<0?1:-1)); mdown=false; });
+  var fs = document.getElementById('fsbtn');
+  function showHint(){
+    var h = document.getElementById('fshint');
+    h.style.display = 'block';
+    clearTimeout(h._t);
+    h._t = setTimeout(function(){ h.style.display = 'none'; }, 3500);
+  }
+  fs.onclick = function(){
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        var p = (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        if (p && p.catch) p.catch(showHint);
+      } else {
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) { showHint(); return; }
+        var r = req.call(el);
+        if (r && r.catch) r.catch(showHint);
+      }
+    } catch(e) { showHint(); }
+  };
+  go(0);
+})();
+</script>
+</body>
+</html>
